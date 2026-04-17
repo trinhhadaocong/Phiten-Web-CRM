@@ -60,14 +60,14 @@ const Reports = () => {
   ];
 
   const groupIds = [
-    { id: 'GRP001', name: 'Golf Elite Group', spend: 850000000, orders: 42, channel: 'Event', status: 'Active' },
-    { id: 'GRP002', name: 'Marathon Runners', spend: 420000000, orders: 115, channel: 'Zalo OA', status: 'Active' },
-    { id: 'GRP003', name: 'Nowzone Loyalty', spend: 1250000000, orders: 89, channel: 'Nowzone', status: 'Active' },
-    { id: 'GRP004', name: 'Taka Premium', spend: 560000000, orders: 61, channel: 'Taka', status: 'Active' },
-    { id: 'GRP005', name: 'Shopee VIPs', spend: 310000000, orders: 156, channel: 'Shopee', status: 'Active' },
-    { id: 'GRP006', name: 'Internal VIP Staff', spend: 185000000, orders: 94, channel: 'Internal', status: 'Active' },
-    { id: 'GRP007', name: 'Yoga Lovers', spend: 95000000, orders: 28, channel: 'Facebook', status: 'Active' },
-    { id: 'GRP008', name: 'Event Collab 2026', spend: 220000000, orders: 34, channel: 'Collab', status: 'Active' },
+    { id: 'KH000184', name: 'Khách Lẻ Sàn Shopee', spend: 840997963, orders: 124, channel: 'Shopee', status: 'Active' },
+    { id: 'KH0008625', name: 'Khách Lẻ No Lấy Hóa Đơn', spend: 642308339, orders: 86, channel: 'Zalo OA', status: 'Active' },
+    { id: 'KH000010', name: 'Khách Lẻ Nước Ngoài', spend: 469838160, orders: 42, channel: 'Nowzone', status: 'Active' },
+    { id: 'KH000009', name: 'Khách Lẻ Việt Nam', spend: 79771940, orders: 28, channel: 'Website', status: 'Active' },
+    { id: 'KH000529', name: 'Khách lẻ sàn TikTok', spend: 32119400, orders: 15, channel: 'TikTok', status: 'Active' },
+    { id: 'KH0005304', name: 'Takashimaya', spend: 42092250, orders: 19, channel: 'Taka', status: 'Active' },
+    { id: 'KH0005108', name: 'Foreigner', spend: 83014500, orders: 11, channel: 'Nowzone', status: 'Active' },
+    { id: 'KH0007417', name: 'T******h', spend: 189885575, orders: 54, channel: 'Zalo OA', status: 'Active' },
   ];
 
   const formatValue = (v) => {
