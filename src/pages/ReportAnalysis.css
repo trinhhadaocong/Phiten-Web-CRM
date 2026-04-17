@@ -1,0 +1,119 @@
+.report-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.report-grid-top {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+}
+
+.metrics-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.metric-box {
+  background: white;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-top: 4px solid var(--primary-color);
+}
+
+.metric-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.metric-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.metric-change {
+  font-size: 12px;
+  font-weight: 600;
+}
+.metric-change.pos { color: var(--accent-green); }
+.metric-change.neg { color: var(--accent-red); }
+
+.customer-analysis-breakdown {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-top: 24px;
+}
+
+.analysis-chart-mini {
+  width: 200px;
+  height: 200px;
+}
+
+.analysis-stats {
+  flex: 1;
+}
+
+.stat-sm {
+  background: rgba(0,0,0,0.02);
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  flex: 1;
+}
+
+.stat-sm .lbl {
+  font-size: 12px;
+  color: var(--text-medium);
+  margin-bottom: 8px;
+}
+.stat-sm .val {
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stat-sm .val .pos { font-size: 13px; color: var(--accent-green); display:flex; align-items:center;  }
+.stat-sm .val .neg { font-size: 13px; color: var(--accent-red); display:flex; align-items:center; }
+
+.stacked-bar-horiz {
+  display: flex;
+  height: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.stack-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.stack-legends {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-medium);
+}
+
+.stack-legends .dot {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 2px;
+  margin-right: 6px;
+}
