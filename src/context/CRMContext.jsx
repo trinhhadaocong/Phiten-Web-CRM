@@ -221,117 +221,120 @@ export const CRMProvider = ({ children }) => {
     }
   }, [clients, loading]);
 
+  const fetchFromAPI = async () => {
+    // API URL usually relative to root if hosted on same domain, or full URL
+    const API_URL = '/backend/api.php'; 
+    const API_KEY = 'PhitenCRM_Secure_Key_2026';
+    
+    const resp = await fetch(API_URL, {
+      headers: { 'X-API-Key': API_KEY }
+    });
+    
+    if (!resp.ok) throw new Error('Không thể kết nối API backend');
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    return data.map(item => ({
+      'Mã KH': item.customer_id,
+      'Tên KH': item.name,
+      'SĐT': item.phone,
+      'Email': item.email,
+      'Địa chỉ': item.address,
+      'Vị trí': item.location,
+      'Giới tính': item.gender,
+      'Ngày sinh': item.birthday,
+      'Ngày vào thành viên': item.member_date,
+      'Thành viên': item.membership,
+      'Trạng thái': item.status,
+      'Môn thể thao': item.sports,
+      'Kênh': item.channel,
+      'Tài khoản': item.account,
+      'Zalo OA': item.zalo_oa,
+      'Bệnh lý': item.medical,
+      'Nghề nghiệp': item.job,
+      'Khách nước ngoài': item.foreign_cust,
+      'Ghi chú': item.note,
+      'Người phụ trách': item.assignee,
+      'Doanh thu': Number(item.revenue),
+      'Giai đoạn': item.stage,
+      'Ngày mua hàng đầu tiên': item.first_purchase_date,
+      'Ngày mua hàng gần nhất': item.last_purchase_date
+    }));
+  };
+
+  const deriveOpps = (data) => {
+    const parseExcelDate = (dateVal) => {
+      if (!dateVal) return '';
+      if (typeof dateVal === 'number') {
+          const utc_days = Math.floor(dateVal - 25569);
+          const utc_value = utc_days * 86400;
+          const d = new Date(utc_value * 1000);
+          return `${d.getUTCDate().toString().padStart(2, '0')}/${(d.getUTCMonth()+1).toString().padStart(2, '0')}/${d.getUTCFullYear()}`;
+      }
+      return dateVal.toString();
+    };
+
+    return data.filter(c =>
+        c['Doanh thu'] !== undefined &&
+        c['Doanh thu'] !== null &&
+        String(c['Doanh thu']).trim() !== '' &&
+        Number(c['Doanh thu']) > 0
+      )
+      .map(c => ({
+        id: c['Mã KH'],
+        name: c['Tên KH'] || 'Opportunity',
+        status: c['Giai đoạn'] || 'Closed Won',
+        revenue: Number(c['Doanh thu']) || 0,
+        expCloseDate: parseExcelDate(c['Ngày mua hàng đầu tiên']),
+        lastPurchaseDate: parseExcelDate(c['Ngày mua hàng gần nhất']),
+        owner: c['Người phụ trách'] || '',
+        gender: c['Giới tính'] || ''
+      }));
+  };
+
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
-        // 1. Check localStorage first for persistence
-        const savedCustomers = localStorage.getItem('crmCustomers');
-        const savedClients = localStorage.getItem('crmClients');
-
-        if (savedCustomers) {
-          const parsedCustomers = JSON.parse(savedCustomers);
-          setCustomers(parsedCustomers);
-          
-          // Re-derive opportunities from stored customers
-          const deriveOpps = (data) => {
-            const parseExcelDate = (dateVal) => {
-              if (!dateVal) return '';
-              if (typeof dateVal === 'number') {
-                  const utc_days = Math.floor(dateVal - 25569);
-                  const utc_value = utc_days * 86400;
-                  const d = new Date(utc_value * 1000);
-                  return `${d.getUTCDate().toString().padStart(2, '0')}/${(d.getUTCMonth()+1).toString().padStart(2, '0')}/${d.getUTCFullYear()}`;
-              }
-              return dateVal.toString();
-            };
-
-            return data.filter(c =>
-                c['Doanh thu'] !== undefined &&
-                c['Doanh thu'] !== null &&
-                String(c['Doanh thu']).trim() !== '' &&
-                Number(c['Doanh thu']) > 0
-              )
-              .map(c => ({
-                id: c['Mã KH'],
-                name: c['Tên KH'] || 'Opportunity',
-                status: c['Giai đoạn'] || 'Closed Won',
-                revenue: Number(c['Doanh thu']) || 0,
-                expCloseDate: parseExcelDate(c['Ngày mua hàng đầu tiên']),
-                lastPurchaseDate: parseExcelDate(c['Ngày mua hàng gần nhất']),
-                owner: c['Người phụ trách'] || '',
-                gender: c['Giới tính'] || ''
-              }));
-          };
-          setOpportunities(deriveOpps(parsedCustomers));
-          
-          if (savedClients) setClients(JSON.parse(savedClients));
-          setLoading(false);
-          return; // Skip fetching the file if we have local data
-        }
-
-        // 2. Fallback to fetching the file
-        const response = await fetch('/data.xlsx');
-        if (!response.ok) throw new Error('File not found');
-        const arrayBuffer = await response.arrayBuffer();
-        
-        try {
-           const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-           
-           // Read Customers
-           const custSheet = workbook.Sheets['Customers'] || workbook.Sheets[workbook.SheetNames[0]];
-           const custData = XLSX.utils.sheet_to_json(custSheet) || [];
-           setCustomers(custData);
-
-           // Utility to handle Excel serial dates → DD/MM/YYYY string
-           const parseExcelDate = (dateVal) => {
-               if (!dateVal) return '';
-               if (typeof dateVal === 'number') {
-                   const utc_days = Math.floor(dateVal - 25569);
-                   const utc_value = utc_days * 86400;
-                   const d = new Date(utc_value * 1000);
-                   return `${d.getUTCDate().toString().padStart(2, '0')}/${(d.getUTCMonth()+1).toString().padStart(2, '0')}/${d.getUTCFullYear()}`;
-               }
-               return dateVal.toString();
-           };
-
-           // ── Extract Opportunities ──────────────────────────────────────────
-           // Cột mới: 'Ngày mua hàng đầu tiên' và 'Ngày mua hàng gần nhất'
-           const opps = custData
-             .filter(c =>
-               c['Doanh thu'] !== undefined &&
-               c['Doanh thu'] !== null &&
-               String(c['Doanh thu']).trim() !== '' &&
-               Number(c['Doanh thu']) > 0
-             )
-             .map(c => ({
-               id: c['Mã KH'],
-               name: c['Tên KH'] || 'Opportunity',
-               status: c['Giai đoạn'] || 'Closed Won',
-               revenue: Number(c['Doanh thu']) || 0,
-               // Ngày mua hàng đầu tiên — có thể là số Excel serial hoặc chuỗi DD/MM/YYYY
-               expCloseDate: parseExcelDate(c['Ngày mua hàng đầu tiên']),
-               // Ngày mua hàng gần nhất — dùng cho RFM Recency
-               lastPurchaseDate: parseExcelDate(c['Ngày mua hàng gần nhất']),
-               owner: c['Người phụ trách'] || '',
-               gender: c['Giới tính'] || ''
-             }));
-           setOpportunities(opps);
-           
-           // Read Clients
-           if (workbook.SheetNames.includes('Clients')) {
-               const cSheet = workbook.Sheets['Clients'];
-               setClients(XLSX.utils.sheet_to_json(cSheet));
-           } else {
-               setClients([]);
-           }
-
-        } catch(parseErr) {
-           setError("File đọc lỗi. Vui lòng kiểm tra định dạng Excel.");
-           setCustomers([]); setOpportunities([]); setClients([]);
-        }
+        // 1. ƯU TIÊN: Lấy dữ liệu từ API Hostinger
+        console.log("Fetching from API...");
+        const apiData = await fetchFromAPI();
+        setCustomers(apiData);
+        setOpportunities(deriveOpps(apiData));
         setLoading(false);
-      } catch (err) {
-        setCustomers([]); setOpportunities([]); setClients([]);
+        return;
+      } catch (apiErr) {
+        console.warn("API Fetch failed, trying localStorage...", apiErr);
+        
+        // 2. FALLBACK 1: Kiểm tra localStorage
+        const savedCustomers = localStorage.getItem('crmCustomers');
+        if (savedCustomers) {
+          try {
+            const parsed = JSON.parse(savedCustomers);
+            setCustomers(parsed);
+            setOpportunities(deriveOpps(parsed));
+            setLoading(false);
+            return;
+          } catch (e) { console.error("Stored data corrupted"); }
+        }
+
+        // 3. FALLBACK 2: Lấy dữ liệu từ file tĩnh data.xlsx
+        try {
+          const response = await fetch('/data.xlsx');
+          if (!response.ok) throw new Error('File data.xlsx không tìm thấy');
+          const arrayBuffer = await response.arrayBuffer();
+          const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+          const custSheet = workbook.Sheets['Customers'] || workbook.Sheets[workbook.SheetNames[0]];
+          const custData = XLSX.utils.sheet_to_json(custSheet) || [];
+          
+          setCustomers(custData);
+          setOpportunities(deriveOpps(custData));
+        } catch (fileErr) {
+          setError("Không thể tải dữ liệu từ bất kỳ nguồn nào.");
+        }
+      } finally {
         setLoading(false);
       }
     };

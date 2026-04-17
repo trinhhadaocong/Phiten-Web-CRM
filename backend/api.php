@@ -61,26 +61,26 @@ if ($method === 'GET') {
     }
 
     // Mapping and Sanity
-    $c_id = $conn->real_escape_string($input['customer_id']);
-    $name = $conn->real_escape_string($input['name'] ?? '');
-    $phone = $conn->real_escape_string($input['phone'] ?? '');
-    $email = $conn->real_escape_string($input['email'] ?? '');
-    $address = $conn->real_escape_string($input['address'] ?? '');
-    $location = $conn->real_escape_string($input['location'] ?? '');
-    $gender = $conn->real_escape_string($input['gender'] ?? '');
-    $membership = $conn->real_escape_string($input['membership'] ?? '');
-    $status = $conn->real_escape_string($input['status'] ?? '');
-    $sports = $conn->real_escape_string($input['sports'] ?? '');
-    $channel = $conn->real_escape_string($input['channel'] ?? '');
-    $account = $conn->real_escape_string($input['account'] ?? '');
-    $zalo_oa = $conn->real_escape_string($input['zalo_oa'] ?? '');
-    $medical = $conn->real_escape_string($input['medical'] ?? '');
-    $job = $conn->real_escape_string($input['job'] ?? '');
-    $foreign_cust = $conn->real_escape_string($input['foreign_cust'] ?? '');
-    $note = $conn->real_escape_string($input['note'] ?? '');
-    $assignee = $conn->real_escape_string($input['assignee'] ?? '');
+    $c_id = $input['customer_id'];
+    $name = $input['name'] ?? '';
+    $phone = $input['phone'] ?? '';
+    $email = $input['email'] ?? '';
+    $address = $input['address'] ?? '';
+    $location = $input['location'] ?? '';
+    $gender = $input['gender'] ?? '';
+    $membership = $input['membership'] ?? '';
+    $status = $input['status'] ?? '';
+    $sports = $input['sports'] ?? '';
+    $channel = $input['channel'] ?? '';
+    $account = $input['account'] ?? '';
+    $zalo_oa = $input['zalo_oa'] ?? '';
+    $medical = $input['medical'] ?? '';
+    $job = $input['job'] ?? '';
+    $foreign_cust = $input['foreign_cust'] ?? '';
+    $note = $input['note'] ?? '';
+    $assignee = $input['assignee'] ?? '';
     $revenue = floatval(str_replace(',', '', $input['revenue'] ?? '0'));
-    $stage = $conn->real_escape_string($input['stage'] ?? '');
+    $stage = $input['stage'] ?? '';
 
     // Dates
     $member_date = format_date($input['member_date'] ?? '');
@@ -88,49 +88,60 @@ if ($method === 'GET') {
     $first_date = format_date($input['first_purchase_date'] ?? '');
     $last_date = format_date($input['last_purchase_date'] ?? '');
 
-    // UPSERT Logic
+    // UPSERT Logic using Prepared Statements
     $sql = "INSERT INTO customers (
                 customer_id, name, phone, email, address, location, gender,
                 member_date, birthday, membership, status, sports, channel,
                 account, zalo_oa, medical, job, foreign_cust, note, assignee,
                 revenue, stage, first_purchase_date, last_purchase_date
             ) VALUES (
-                '$c_id', '$name', '$phone', '$email', '$address', '$location', '$gender',
-                " . ($member_date ? "'$member_date'" : "NULL") . ",
-                " . ($birthday ? "'$birthday'" : "NULL") . ",
-                '$membership', '$status', '$sports', '$channel',
-                '$account', '$zalo_oa', '$medical', '$job', '$foreign_cust', '$note', '$assignee',
-                $revenue, '$stage', 
-                " . ($first_date ? "'$first_date'" : "NULL") . ", 
-                " . ($last_date ? "'$last_date'" : "NULL") . "
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             ) ON DUPLICATE KEY UPDATE 
-                name = '$name',
-                phone = '$phone',
-                email = '$email',
-                address = '$address',
-                location = '$location',
-                gender = '$gender',
-                membership = '$membership',
-                status = '$status',
-                sports = '$sports',
-                channel = '$channel',
-                account = '$account',
-                zalo_oa = '$zalo_oa',
-                medical = '$medical',
-                job = '$job',
-                foreign_cust = '$foreign_cust',
-                note = '$note',
-                assignee = '$assignee',
-                revenue = $revenue,
-                stage = '$stage',
-                last_purchase_date = " . ($last_date ? "'$last_date'" : "NULL") . "";
+                name = VALUES(name),
+                phone = VALUES(phone),
+                email = VALUES(email),
+                address = VALUES(address),
+                location = VALUES(location),
+                gender = VALUES(gender),
+                membership = VALUES(membership),
+                status = VALUES(status),
+                sports = VALUES(sports),
+                channel = VALUES(channel),
+                account = VALUES(account),
+                zalo_oa = VALUES(zalo_oa),
+                medical = VALUES(medical),
+                job = VALUES(job),
+                foreign_cust = VALUES(foreign_cust),
+                note = VALUES(note),
+                assignee = VALUES(assignee),
+                revenue = VALUES(revenue),
+                stage = VALUES(stage),
+                last_purchase_date = VALUES(last_purchase_date)";
 
-    if ($conn->query($sql) === TRUE) {
+    $stmt = $conn->prepare($sql);
+    
+    // Type string: 20 strings ('s'), 1 double ('d'), 1 string ('s'), 2 strings ('s') = 24 parameters
+    // Wait, let's count carefully:
+    // 1(id), 2(name), 3(phone), 4(email), 5(address), 6(loc), 7(gender), 8(member_date), 9(birthday), 
+    // 10(membership), 11(status), 12(sports), 13(channel), 14(account), 15(zalo), 16(medical), 
+    // 17(job), 18(foreign), 19(note), 20(assignee), 21(revenue - d), 22(stage), 23(first), 24(last)
+    // types: s s s s s s s s s s s s s s s s s s s s d s s s
+    $types = "ssssssssssssssssssssdsss";
+    
+    $stmt->bind_param($types, 
+        $c_id, $name, $phone, $email, $address, $location, $gender,
+        $member_date, $birthday, $membership, $status, $sports, $channel,
+        $account, $zalo_oa, $medical, $job, $foreign_cust, $note, $assignee,
+        $revenue, $stage, $first_date, $last_date
+    );
+
+    if ($stmt->execute()) {
         echo json_encode(["status" => "success", "message" => "Customer processed successfully"]);
     } else {
         http_response_code(500);
-        echo json_encode(["error" => "SQL Error: " . $conn->error]);
+        echo json_encode(["error" => "SQL Error: " . $stmt->error]);
     }
+    $stmt->close();
 }
 
 $conn->close();

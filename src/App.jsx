@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import MainLayout from './components/MainLayout';
 import Dashboard from './pages/Dashboard';
 import SalesCustomerList from './pages/SalesCustomerList';
-import ReportAnalysis from './pages/ReportAnalysis';
+import Reports from './pages/sales/Reports';
 import SalesOpportunityList from './pages/SalesOpportunityList';
 import Clients from './pages/Clients';
 import Analytics from './pages/Analytics';
@@ -45,7 +45,7 @@ function AppRoutes() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/sales/customers" element={<SalesCustomerList />} />
-              <Route path="/sales/reports" element={<ReportAnalysis />} />
+              <Route path="/sales/reports" element={<Reports />} />
               <Route path="/sales/opportunities" element={<SalesOpportunityList />} />
               <Route path="/marketing" element={<PlaceholderPage title="Marketing Module" />} />
               <Route path="/clients" element={<Clients />} />

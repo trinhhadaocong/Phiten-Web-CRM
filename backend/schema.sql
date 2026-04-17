@@ -23,13 +23,42 @@ CREATE TABLE IF NOT EXISTS `customers` (
   `stage` VARCHAR(50) DEFAULT NULL,                      -- Giai đoạn
   `first_purchase_date` DATE DEFAULT NULL,               -- Ngày mua hàng đầu tiên
   `last_purchase_date` DATE DEFAULT NULL,                -- Ngày mua hàng gần nhất
+  
+  -- RFM & Segmentation Columns
+  `number_of_orders` INT DEFAULT 0,
+  `recency_days` INT DEFAULT 9999,
+  `aov` DECIMAL(15, 2) DEFAULT 0.00,
+  `segment` ENUM('VIP', 'Loyal', 'At Risk', 'Lost', 'New') DEFAULT 'New',
+
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
   -- Indexing for RFM speed
   INDEX `idx_stage` (`stage`),
-  INDEX `idx_last_date` (`last_purchase_date`)
+  INDEX `idx_last_date` (`last_purchase_date`),
+  INDEX `idx_segment` (`segment`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Stored Procedure to calculate segments
+DELIMITER //
+CREATE PROCEDURE IF NOT EXISTS calculate_segments()
+BEGIN
+    -- Update Recency
+    UPDATE customers 
+    SET recency_days = DATEDIFF(CURDATE(), last_purchase_date)
+    WHERE last_purchase_date IS NOT NULL;
+
+    -- Update Segmentation Logic
+    UPDATE customers
+    SET segment = CASE 
+        WHEN recency_days <= 90 AND aov >= 10000000 THEN 'VIP'
+        WHEN recency_days <= 180 AND number_of_orders >= 2 THEN 'Loyal'
+        WHEN recency_days BETWEEN 91 AND 180 THEN 'At Risk'
+        WHEN recency_days > 180 THEN 'Lost'
+        ELSE 'New'
+    END;
+END //
+DELIMITER ;
 
 -- Optional: Initial test data insert
 -- INSERT INTO customers (customer_id, name, total_spend) VALUES ('KH-TEST-01', 'Test User', 1000000);

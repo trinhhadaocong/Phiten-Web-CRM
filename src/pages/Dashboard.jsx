@@ -1,7 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useCRMData } from '../context/CRMContext';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, Bar } from 'recharts';
-import { Calendar, Cake } from 'lucide-react';
+import { Calendar, Cake, AlertTriangle, LayoutGrid, Target, ArrowRight, Zap, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './Dashboard.css';
 
 const GENDER_COLORS = ['#ff7675', '#74b9ff', '#ffeaa7'];
@@ -13,6 +11,20 @@ export default function Dashboard() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  // Mocked Business Health Metrics (Based on Q1 Report)
+  const activeRate = 33.5;
+  const repeatRate = 27.8;
+  const birthdayCR = 12.1;
+
+  // --- KPI Alert Logic ---
+  const hasKPIAlert = activeRate < 50 || repeatRate < 35;
+
+  // --- Campaign Data ---
+  const activeCampaigns = [
+    { name: 'PHITEN NHỚ BẠN', progress: 10, target: '1,392 KH', color: '#6366f1' },
+    { name: 'VIP EXCLUSIVE', progress: 5, target: '71 KH', color: '#f59e0b' },
+  ];
 
   // Parse DD/MM/YYYY → Date object
   const parseDDMMYYYY = (dateStr) => {
@@ -178,7 +190,20 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="dashboard">
+    <div className="dashboard animate-fade-in">
+      {/* (1) Alert Banner when KPI is red */}
+      {hasKPIAlert && (
+        <div className="alert-banner" style={{ background: '#7f1d1d', border: '1px solid #991b1b', color: '#fca5a5', padding: '12px 24px', borderRadius: 'var(--radius-md)', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 12px rgba(127,29,29,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <AlertTriangle size={20} />
+            <span style={{ fontSize: '14px', fontWeight: 600 }}>Cảnh báo: 3 KPIs chưa đạt target Q1 (Active: {activeRate}%, Repeat: {repeatRate}%)</span>
+          </div>
+          <Link to="/sales/reports" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'white', fontWeight: 700, textDecoration: 'none' }}>
+            XEM BÁO CÁO CHI TIẾT <ArrowRight size={14} />
+          </Link>
+        </div>
+      )}
+
       <div className="page-header">
         <h2 className="page-title">{t('dashboard')}</h2>
         <div className="breadcrumbs">
@@ -216,18 +241,51 @@ export default function Dashboard() {
         </span>
       </div>
 
-      {/* Stats */}
+      {/* Stats - ROW 1 */}
       <div className="stats-grid">
         <StatCard title={t('totalRevenue')} value={`${totalRevenue.toLocaleString()} VND`} change={t('updated')} isPositive={true} />
         <StatCard title={t('totalQuantity')} value={filteredOpps.length.toLocaleString()} change={t('new')} isPositive={true} />
         <StatCard title={t('numberOrders')} value={filteredOpps.length.toLocaleString()} change="" isPositive={true} />
         <StatCard title={t('averageOrder')} value={`${averageOrder.toLocaleString()} VND`} change="" isPositive={true} />
-        <StatCard title={t('customerCount')} value={customers.length.toLocaleString()} change={t('totalUsers')} isPositive={true} />
+      </div>
+
+      {/* Stats - ROW 2: Quick Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-6">
+         <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ color: 'var(--text-medium)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Active Rate</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+               <div style={{ fontSize: '24px', fontWeights: 800, color: activeRate < 50 ? '#ef4444' : '#10b981' }}>{activeRate}%</div>
+               <div style={{ height: '6px', flex: 1, backgroundColor: '#1e293b', borderRadius: '3px' }}>
+                  <div style={{ height: '100%', width: `${activeRate}%`, backgroundColor: activeRate < 50 ? '#ef4444' : '#10b981', borderRadius: '3px' }} />
+               </div>
+            </div>
+            <div style={{ fontSize: '10px', color: 'var(--text-medium)', marginTop: '8px' }}>Mục tiêu Q1: ≥ 50%</div>
+         </div>
+         <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ color: 'var(--text-medium)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Repeat rate</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+               <div style={{ fontSize: '24px', fontWeights: 800, color: repeatRate < 35 ? '#ef4444' : '#10b981' }}>{repeatRate}%</div>
+               <div style={{ height: '6px', flex: 1, backgroundColor: '#1e293b', borderRadius: '3px' }}>
+                  <div style={{ height: '100%', width: `${repeatRate}%`, backgroundColor: repeatRate < 35 ? '#ef4444' : '#10b981', borderRadius: '3px' }} />
+               </div>
+            </div>
+            <div style={{ fontSize: '10px', color: 'var(--text-medium)', marginTop: '8px' }}>Mục tiêu Q1: ≥ 35%</div>
+         </div>
+         <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ color: 'var(--text-medium)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Birthday Conv. Rate</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+               <div style={{ fontSize: '24px', fontWeights: 800, color: '#f59e0b' }}>{birthdayCR}%</div>
+               <div style={{ height: '6px', flex: 1, backgroundColor: '#1e293b', borderRadius: '3px' }}>
+                  <div style={{ height: '100%', width: `${birthdayCR}%`, backgroundColor: '#f59e0b', borderRadius: '3px' }} />
+               </div>
+            </div>
+            <div style={{ fontSize: '10px', color: 'var(--text-medium)', marginTop: '8px' }}>Mục tiêu Q1: ≥ 15%</div>
+         </div>
       </div>
 
       {/* Charts */}
       <div className="charts-grid-alt">
-        {/* (2) Biểu đồ xu hướng doanh thu — theo dữ liệu lọc, tháng 0 = 0 */}
+        {/* (2) Biểu đồ xu hướng doanh thu */}
         <div className="card chart-card main-chart">
           <h3>{t('revenueTrends')} ({t('millionsVND')})</h3>
           <div style={{ width: '100%', height: 250, marginTop: 10 }}>
@@ -249,26 +307,35 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* (3) Phân bố giới tính — theo filteredOpps (tùy chỉnh thời gian) */}
-        <div className="card chart-card side-chart">
-          <h3>{t('customerGenesis')}</h3>
-          <div style={{ width: '100%', height: 250 }}>
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={genderData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                  {genderData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={GENDER_COLORS[index % GENDER_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(v, name) => [v, name]} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+        {/* Campaign Status Widget */}
+        <div className="card" style={{ padding: '24px' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Zap size={18} color="#6366f1" /> Campaign T4
+              </h3>
+              <Link to="/sales/reports" style={{ fontSize: '11px', color: '#6366f1', fontWeight: 700 }}>XEM TẤT CẢ</Link>
+           </div>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {activeCampaigns.map((camp, idx) => (
+                <div key={idx}>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>{camp.name}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-medium)' }}>Target: {camp.target}</span>
+                   </div>
+                   <div style={{ height: '6px', width: '100%', backgroundColor: '#1e293b', borderRadius: '3px', position: 'relative' }}>
+                      <div style={{ height: '100%', width: `${camp.progress}%`, backgroundColor: camp.color, borderRadius: '3px', boxShadow: `0 0 8px ${camp.color}66` }} />
+                   </div>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+                      <span style={{ fontSize: '10px', color: camp.color }}>Launch Ready</span>
+                      <span style={{ fontSize: '10px', color: 'var(--text-light)' }}>{camp.progress}% Progress</span>
+                   </div>
+                </div>
+              ))}
+           </div>
         </div>
 
-        {/* (4) Phân khúc thành viên — giữ nguyên từ toàn bộ customers */}
-        <div className="card chart-card side-chart" style={{ gridColumn: '1 / span 1' }}>
+        {/* Member Segments Dashboard View */}
+        <div className="card chart-card side-chart">
           <h3>{t('memberSegments')}</h3>
           <div style={{ width: '100%', height: 250 }}>
             <ResponsiveContainer>
@@ -287,23 +354,28 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* (4) Sinh nhật trong tháng — giữ nguyên, tháng hiện tại động */}
+        {/* Improved Birthday Widget */}
         <div className="card chart-card side-chart">
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Cake size={18} color="#eb3b5a" /> {t('birthdaysThisMonth')}
-          </h3>
-          <div className="birthday-list" style={{ marginTop: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+             <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+               <Cake size={18} color="#eb3b5a" /> {t('birthdaysThisMonth')}
+             </h3>
+             <div style={{ fontSize: '10px', fontWeight: 800, color: '#f59e0b', background: '#f59e0b15', padding: '2px 8px', borderRadius: '10px', border: '1px solid #f59e0b30' }}>
+               CR: {birthdayCR}%
+             </div>
+          </div>
+          <div className="birthday-list">
             {birthdayCustomers.length === 0
               ? <p style={{ color: '#8395a7', fontSize: 13 }}>{t('noBirthdays')}</p>
               : null}
             {birthdayCustomers.map((c, idx) => (
-              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f2f6' }}>
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border-color)' }}>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 13 }}>{c['Tên KH'] || c['TÊN KH']}</div>
-                  <div style={{ color: '#8395a7', fontSize: 12 }}>{c['SĐT']}</div>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: 'white' }}>{c['Tên KH'] || c['TÊN KH']}</div>
+                  <div style={{ color: 'var(--text-medium)', fontSize: 12 }}>{c['SĐT']}</div>
                 </div>
                 <div style={{ fontWeight: 600, color: '#eb3b5a', fontSize: 13 }}>
-                  {c['Ngày sinh'] || c['NGÀY SINH']}
+                   {c['Ngày sinh'] || c['NGÀY SINH']}
                 </div>
               </div>
             ))}
@@ -325,3 +397,4 @@ function StatCard({ title, value, change, isPositive }) {
     </div>
   );
 }
+
