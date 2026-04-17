@@ -1,111 +1,86 @@
+/* Dashboard.css - Phiten Vietnam Premium Style */
+
 .dashboard {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+/* Premium KPI Cards */
+.stat-card-premium {
+  padding: 24px;
   background: white;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  width: fit-content;
-  box-shadow: var(--shadow-sm);
-  font-size: 14px;
-  color: var(--text-medium);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.date-picker {
+.stat-card-premium:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.stat-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-right: 16px;
-  border-right: 1px solid var(--border-color);
+  justify-content: center;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
+.badge-pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.badge-pill.red { background: #fee2e2; color: #ef4444; }
+.badge-pill.orange { background: #ffedd5; color: #f59e0b; }
+.badge-pill.purple { background: #f3e8ff; color: #8854d0; }
+.badge-pill.green { background: #dcfce7; color: #20bf6b; }
+
+.tooltip-container {
+  cursor: help;
+  display: inline-flex;
 }
 
-.stat-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-dark);
-}
-
-.stat-value-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--primary-color);
-}
-
-.stat-change {
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.stat-change.positive {
-  color: var(--accent-green);
-}
-
-.stat-change.negative {
-  color: var(--accent-red);
-}
-
+/* Layouts */
 .charts-grid-alt {
   display: grid;
   grid-template-columns: 2fr 1fr;
+  grid-auto-flow: row dense;
   gap: 24px;
 }
 
 .chart-card h3 {
   font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 20px;
 }
 
+/* Animations */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsibility */
 @media (max-width: 1200px) {
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .charts-grid-alt {
-    grid-template-columns: 1fr;
-  }
-  
-  .filter-bar {
-    width: 100%;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .date-picker {
-    border-right: none;
-    padding-right: 0;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border-color);
-    width: 100%;
-  }
+  .charts-grid-alt { grid-template-columns: 1fr; }
+  .grid-cols-3 { grid-template-columns: 1fr; }
 }

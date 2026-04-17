@@ -47,7 +47,7 @@ export const CRMProvider = ({ children }) => {
       customers: "Customers", reportsAnalysis: "Reports & Analysis",
       marketing: "Marketing", clients: "Clients", analytics: "Analytics",
       setting: "Setting", moreService: "MORE SERVICE", helpDesk: "HELP DESK",
-      searchPlaceholder: "Search customers by name...",
+      searchPlaceholder: "Search customers...",
       totalRevenue: "Total Revenue", totalQuantity: "Total Opportunities",
       numberOrders: "Number of Orders", averageOrder: "Average Order Value",
       customerCount: "Customer Count", yearToDate: "Year-to-date",
@@ -126,7 +126,7 @@ export const CRMProvider = ({ children }) => {
       customers: "Khách hàng", reportsAnalysis: "Báo cáo & Phân tích",
       marketing: "Tiếp thị", clients: "Hồ sơ công ty", analytics: "Phân tích RFM",
       setting: "Cấu hình hệ thống", moreService: "DỊCH VỤ THÊM", helpDesk: "TRỢ GIÚP",
-      searchPlaceholder: "Tìm kiếm khách hàng (Tên)...",
+      searchPlaceholder: "Tìm kiếm khách hàng...",
       totalRevenue: "Tổng Doanh Thu", totalQuantity: "Tổng Cơ Hội",
       numberOrders: "Số Lượng Đơn", averageOrder: "Giá trị Đơn TB",
       customerCount: "Lượng Khách Hàng", yearToDate: "Tính từ đầu năm",
@@ -222,7 +222,6 @@ export const CRMProvider = ({ children }) => {
   }, [clients, loading]);
 
   const fetchFromAPI = async () => {
-    // API URL usually relative to root if hosted on same domain, or full URL
     const API_URL = '/backend/api.php'; 
     const API_KEY = 'PhitenCRM_Secure_Key_2026';
     
@@ -257,6 +256,7 @@ export const CRMProvider = ({ children }) => {
       'Người phụ trách': item.assignee,
       'Doanh thu': Number(item.revenue),
       'Giai đoạn': item.stage,
+      'Số đơn hàng': item.number_of_orders || 1,
       'Ngày mua hàng đầu tiên': item.first_purchase_date,
       'Ngày mua hàng gần nhất': item.last_purchase_date
     }));
@@ -288,7 +288,8 @@ export const CRMProvider = ({ children }) => {
         expCloseDate: parseExcelDate(c['Ngày mua hàng đầu tiên']),
         lastPurchaseDate: parseExcelDate(c['Ngày mua hàng gần nhất']),
         owner: c['Người phụ trách'] || '',
-        gender: c['Giới tính'] || ''
+        gender: c['Giới tính'] || '',
+        ordersCount: Number(c['Số đơn hàng']) || Number(c['SỐ ĐƠN HÀNG']) || 1
       }));
   };
 
@@ -298,15 +299,17 @@ export const CRMProvider = ({ children }) => {
       setError(null);
       
       try {
-        // 1. ƯU TIÊN: Lấy dữ liệu từ API Hostinger
-        console.log("Fetching from API...");
+        console.log("Checking for API backend at /backend/api.php...");
         const apiData = await fetchFromAPI();
-        setCustomers(apiData);
-        setOpportunities(deriveOpps(apiData));
-        setLoading(false);
-        return;
+        if (apiData && Array.isArray(apiData)) {
+          setCustomers(apiData);
+          setOpportunities(deriveOpps(apiData));
+          setLoading(false);
+          return;
+        }
       } catch (apiErr) {
-        console.warn("API Fetch failed, trying localStorage...", apiErr);
+        console.warn("API Backend not available or returned error. Falling back to local data.", apiErr.message);
+      }
         
         // 2. FALLBACK 1: Kiểm tra localStorage
         const savedCustomers = localStorage.getItem('crmCustomers');

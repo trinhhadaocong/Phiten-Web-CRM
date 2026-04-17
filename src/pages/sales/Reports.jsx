@@ -60,14 +60,78 @@ const Reports = () => {
   ];
 
   const groupIds = [
-    { id: 'KH000184', name: 'Khách Lẻ Sàn Shopee', spend: 840997963, orders: 124, channel: 'Shopee', status: 'Active' },
-    { id: 'KH0008625', name: 'Khách Lẻ No Lấy Hóa Đơn', spend: 642308339, orders: 86, channel: 'Zalo OA', status: 'Active' },
-    { id: 'KH000010', name: 'Khách Lẻ Nước Ngoài', spend: 469838160, orders: 42, channel: 'Nowzone', status: 'Active' },
-    { id: 'KH000009', name: 'Khách Lẻ Việt Nam', spend: 79771940, orders: 28, channel: 'Website', status: 'Active' },
-    { id: 'KH000529', name: 'Khách lẻ sàn TikTok', spend: 32119400, orders: 15, channel: 'TikTok', status: 'Active' },
-    { id: 'KH0005304', name: 'Takashimaya', spend: 42092250, orders: 19, channel: 'Taka', status: 'Active' },
-    { id: 'KH0005108', name: 'Foreigner', spend: 83014500, orders: 11, channel: 'Nowzone', status: 'Active' },
-    { id: 'KH0007417', name: 'T******h', spend: 189885575, orders: 54, channel: 'Zalo OA', status: 'Active' },
+    {
+      id: 'KH000184',
+      name: 'Khách Lẻ Sàn Shopee',
+      spend: 840997963,
+      orders: 317,
+      channel: 'Shopee',
+      note: 'Sàn ẩn — KH000184 dùng từ 01/2024 đến nay',
+      status: 'Active'
+    },
+    {
+      id: 'KH0008625',
+      name: 'Khách Lẻ No Lấy Hóa Đơn',
+      spend: 642308339,
+      orders: 264,
+      channel: 'All Channel',
+      note: 'Takashimaya + Nowzon + Lazada + Tiki + Zalo + Website + Event',
+      status: 'Active'
+    },
+    {
+      id: 'KH000010',
+      name: 'Khách Lẻ Nước Ngoài',
+      spend: 469838160,
+      orders: 154,
+      channel: 'Takashimaya',
+      note: 'Khách tourist — không đăng ký',
+      status: 'Active'
+    },
+    {
+      id: 'KH000009',
+      name: 'Khách Lẻ Việt Nam',
+      spend: 79771940,
+      orders: 34,
+      channel: 'Takashimaya',
+      note: 'Mua lẻ tại quầy — không đăng ký',
+      status: 'Active'
+    },
+    {
+      id: 'KH000529',
+      name: 'Khách Lẻ Sàn TikTok',
+      spend: 32119400,
+      orders: 17,
+      channel: 'TikTok',
+      note: 'TikTok ẩn — KH000529 dùng từ 05/2024 đến nay',
+      status: 'Active'
+    },
+    {
+      id: 'KH0005304',
+      name: 'Takashimaya',
+      spend: 42092250,
+      orders: 10,
+      channel: 'Takashimaya',
+      note: 'Mua lẻ tại Event — chưa có store',
+      status: 'Stop'
+    },
+    {
+      id: 'KH0005108',
+      name: 'Foreigner',
+      spend: 83014500,
+      orders: 26,
+      channel: 'Online',
+      note: 'Event ghi nhận kênh Online (CN3)',
+      status: 'Stop'
+    },
+    {
+      id: 'KH0007417',
+      name: 'T*******h',
+      spend: 189885575,
+      orders: 78,
+      channel: 'Shopee',
+      note: 'Sàn ẩn — KH0007417 dùng từ 05/2024 đến nay',
+      status: 'Stop'
+    }
   ];
 
   const formatValue = (v) => {

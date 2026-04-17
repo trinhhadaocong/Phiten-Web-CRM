@@ -24,7 +24,7 @@ export default function TopBar({ toggleSidebar }) {
         <Search size={20} color="var(--primary-color)" />
         <input 
           type="text" 
-          placeholder={t('searchPlaceholder')}
+          placeholder="Tìm tên, SĐT khách hàng..."
           value={globalSearch}
           onChange={(e) => setGlobalSearch(e.target.value)}
         />

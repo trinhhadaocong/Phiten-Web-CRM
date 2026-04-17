@@ -1,179 +1,136 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Lock, LogIn } from 'lucide-react';
+import { LogIn, Mail, Lock, CheckCircle2, ShieldAlert } from 'lucide-react';
 
-export default function Login() {
-  const { login, error, setError, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+const Login = () => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [shake, setShake] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { login, error, setError, isAuthenticated, mockUsers } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/dashboard";
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/dashboard', { replace: true });
-  }, [isAuthenticated, navigate]);
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    // Small delay for UX feel
-    await new Promise(r => setTimeout(r, 600));
-    const ok = login(password);
-    setLoading(false);
-    if (!ok) {
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-    } else {
-      navigate('/dashboard', { replace: true });
+    setIsLoading(true);
+    const success = login(email, password);
+    setIsLoading(false);
+    if (success) {
+      navigate(from, { replace: true });
     }
   };
 
+  const quickLogin = (userEmail) => {
+    setEmail(userEmail);
+    login(userEmail, 'demo');
+  };
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%)',
-      fontFamily: "'Inter', 'Segoe UI', sans-serif",
-    }}>
-      {/* Animated background orbs */}
-      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-        <div style={{
-          position: 'absolute', width: 400, height: 400, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(108,92,231,0.3) 0%, transparent 70%)',
-          top: '-100px', left: '-100px', animation: 'pulse 4s ease-in-out infinite',
-        }} />
-        <div style={{
-          position: 'absolute', width: 300, height: 300, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0,184,212,0.2) 0%, transparent 70%)',
-          bottom: '-80px', right: '-80px', animation: 'pulse 5s ease-in-out infinite reverse',
-        }} />
-        <div style={{
-          position: 'absolute', width: 200, height: 200, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(253,121,168,0.15) 0%, transparent 70%)',
-          top: '40%', right: '15%', animation: 'pulse 6s ease-in-out infinite',
-        }} />
-      </div>
-
-      <style>{`
-        @keyframes pulse { 0%,100%{transform:scale(1);opacity:0.8} 50%{transform:scale(1.1);opacity:1} }
-        @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes spin { to{transform:rotate(360deg)} }
-        .login-input:focus { border-color: #6c5ce7 !important; box-shadow: 0 0 0 3px rgba(108,92,231,0.2) !important; }
-        .login-btn:hover:not(:disabled) { background: #5a4bd1 !important; transform: translateY(-1px); box-shadow: 0 8px 25px rgba(108,92,231,0.5) !important; }
-        .login-btn:active:not(:disabled) { transform: translateY(0); }
-      `}</style>
-
-      <div style={{
-        width: 420, maxWidth: '90vw', padding: '48px 40px',
-        background: 'rgba(255,255,255,0.05)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: 24,
-        border: '1px solid rgba(255,255,255,0.1)',
-        boxShadow: '0 25px 80px rgba(0,0,0,0.5)',
-        animation: 'fadeIn 0.5s ease-out',
-        ...(shake ? { animation: 'shake 0.4s ease-in-out' } : {}),
-        position: 'relative', zIndex: 1,
-      }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: 20,
-            background: 'linear-gradient(135deg, #6c5ce7, #a855f7)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 20px', boxShadow: '0 8px 32px rgba(108,92,231,0.5)',
-          }}>
-            <Lock size={32} color="white" />
+    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-slate-950">
+      <div className="w-full max-w-md">
+        {/* Logo Section */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-600 rounded-2xl shadow-[0_0_40px_rgba(79,70,229,0.3)] mb-4">
+            <span className="text-white text-3xl font-black italic">PH</span>
           </div>
-          <h1 style={{ color: 'white', fontSize: 26, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.5px' }}>
-            PHITEN VIETNAM
+          <h1 className="text-3xl font-black text-white tracking-widest uppercase">
+            PHITEN <span className="text-indigo-500">CRM</span>
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: 0 }}>
-            CRM Management System
-          </p>
+          <p className="text-slate-400 mt-2 font-medium">Bản quyền thuộc Phiten Vietnam 2026</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {/* Password field */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-              Password
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                className="login-input"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => { setPassword(e.target.value); if (error) setError(''); }}
-                placeholder="Enter your password"
-                autoFocus
-                style={{
-                  width: '100%', padding: '14px 48px 14px 16px', boxSizing: 'border-box',
-                  background: 'rgba(255,255,255,0.08)',
-                  border: error ? '1.5px solid #fd79a8' : '1.5px solid rgba(255,255,255,0.1)',
-                  borderRadius: 12, color: 'white', fontSize: 15,
-                  fontFamily: 'inherit', outline: 'none',
-                  transition: 'all 0.2s',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(v => !v)}
-                style={{
-                  position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-                  color: 'rgba(255,255,255,0.4)',
-                }}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+        {/* Login Card */}
+        <div className="bg-[#1e293b] border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500" />
+          
+          <h2 className="text-xl font-bold text-white mb-6">Đăng nhập hệ thống</h2>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-500 text-sm animate-shake">
+              <ShieldAlert size={18} />
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Email công việc</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@phiten.vn"
+                  className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-slate-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                  required
+                />
+              </div>
             </div>
 
-            {/* Error message */}
-            {error && (
-              <div style={{
-                marginTop: 8, padding: '8px 12px', borderRadius: 8,
-                background: 'rgba(253,121,168,0.15)', border: '1px solid rgba(253,121,168,0.3)',
-                color: '#fd79a8', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8,
-              }}>
-                ⚠️ {error}
+            <div>
+              <label className="block text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Mật khẩu</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-slate-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                  required
+                />
               </div>
-            )}
+            </div>
+
+            <button 
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 group"
+            >
+              {isLoading ? 'Đang xác thực...' : 'VÀO HỆ THỐNG'}
+              <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </form>
+
+          {/* Quick Demo Login */}
+          <div className="mt-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-px flex-1 bg-slate-800" />
+              <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Demo Quick Access</span>
+              <div className="h-px flex-1 bg-slate-800" />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              {mockUsers.map(user => (
+                <button
+                  key={user.id}
+                  onClick={() => quickLogin(user.email)}
+                  className="bg-slate-900/40 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900 p-2.5 rounded-xl text-left transition-all group"
+                >
+                  <div className="text-[10px] font-bold text-slate-500 uppercase group-hover:text-indigo-400 transition-colors">{user.role}</div>
+                  <div className="text-xs font-medium text-slate-300 truncate">{user.name}</div>
+                </button>
+              ))}
+            </div>
           </div>
+        </div>
 
-          {/* Submit button */}
-          <button
-            type="submit"
-            disabled={loading || !password}
-            className="login-btn"
-            style={{
-              width: '100%', padding: '14px 0', borderRadius: 12, border: 'none',
-              background: 'linear-gradient(135deg, #6c5ce7, #a855f7)',
-              color: 'white', fontSize: 15, fontWeight: 700, cursor: loading || !password ? 'not-allowed' : 'pointer',
-              fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              opacity: !password ? 0.6 : 1,
-              transition: 'all 0.2s', boxShadow: '0 4px 16px rgba(108,92,231,0.4)',
-            }}
-          >
-            {loading ? (
-              <>
-                <div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                Signing in...
-              </>
-            ) : (
-              <><LogIn size={18} /> Sign In</>
-            )}
-          </button>
-        </form>
-
-        <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: 12, marginTop: 28, marginBottom: 0 }}>
-          🔒 Phiten Vietnam — Internal CRM · {new Date().getFullYear()}
+        <p className="text-center text-slate-600 text-[10px] mt-8 uppercase tracking-[0.2em]">
+          Internal Access Only &bull; Restricted Area
         </p>
       </div>
     </div>
   );
-}
+};
+
+export default Login;

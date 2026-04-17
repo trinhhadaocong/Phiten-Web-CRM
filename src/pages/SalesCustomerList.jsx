@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useRef, useCallback, memo } from 'react';
+import { Link } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import { useCRMData } from '../context/CRMContext';
-import { Filter, DownloadCloud, UploadCloud, Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Filter, DownloadCloud, UploadCloud, Plus, Edit2, Trash2, X, ExternalLink } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import './SalesCustomerList.css';
 
@@ -325,13 +326,20 @@ export default function SalesCustomerList() {
               {filteredCustomers.slice(0, 15).map((c) => (
                 <tr key={c['Mã KH'] || Math.random()}>
                   <td><input type="checkbox" /> {c['Mã KH']}</td>
-                  <td style={{ fontWeight: 500, color: '#1e272e' }}>{c['Tên KH']}</td>
+                  <td style={{ fontWeight: 600 }}>
+                    <Link to={`/sales/customers/${c['Mã KH']}`} style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
+                      {c['Tên KH']}
+                    </Link>
+                  </td>
                   <td>{c['SĐT']}</td>
                   <td>{c['Vị trí']}</td>
                   <td>{c['Giới tính']}</td>
                   <td><span className="status-badge" style={{ background: 'rgba(52,152,219,0.1)', color: '#3498db' }}>{c['Thành viên']}</span></td>
                   <td>{c['Channel']}</td>
                   <td style={{ textAlign: 'center' }}>
+                    <Link to={`/sales/customers/${c['Mã KH']}`} style={{ color: 'var(--text-light)', marginRight: 12 }}>
+                      <ExternalLink size={16} />
+                    </Link>
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary-color)', marginRight: 12 }} onClick={() => handleEdit(c)}><Edit2 size={16} /></button>
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-red)' }} onClick={() => handleDelete(c['Mã KH'])}><Trash2 size={16} /></button>
                   </td>

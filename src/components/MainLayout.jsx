@@ -5,7 +5,7 @@ import { useCRMData } from '../context/CRMContext';
 
 export default function MainLayout({ children }) {
   const { loading } = useCRMData();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);

@@ -15,8 +15,14 @@
   padding: 8px 16px;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  width: 300px;
+  width: 450px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   gap: 8px;
+}
+
+.topbar-search:focus-within {
+  width: 500px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .topbar-search input {
