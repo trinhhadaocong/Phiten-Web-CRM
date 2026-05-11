@@ -32,9 +32,9 @@ export const CRMProvider = ({ children }) => {
       ...r,
       CustomerID: String(getVal(r, ['CustomerID', 'Customer ID', 'Mã KH']) || '').trim(),
       CustomerID_norm: String(getVal(r, ['CustomerID_norm', 'CustomerID']) || '').trim(),
-      Revenue: Number(getVal(r, ['Revenue', 'Thành tiền', 'ThanhTien']) || 0),
-      Year: Number(getVal(r, ['Year']) || 0),
-      Month: Number(getVal(r, ['Month']) || 0),
+      Revenue: Number(getVal(r, ['Revenue', 'Thành tiền', 'ThanhTien']) || 0) || 0,
+      Year: Number(getVal(r, ['Year']) || 0) || new Date().getFullYear(),
+      Month: Number(getVal(r, ['Month']) || 0) || (new Date().getMonth() + 1),
       OrderKey: String(getVal(r, ['OrderKey', 'OrderID', 'Mã hóa đơn']) || ''),
       Channel_norm: String(getVal(r, ['Channel_norm', 'Channel', 'Kênh']) || 'Showroom'),
       DOB: String(getVal(r, ['Day of Birthday', 'DOB', 'Ngày sinh']) || ''),
@@ -47,15 +47,15 @@ export const CRMProvider = ({ children }) => {
       CustomerID: String(getVal(r, ['CustomerID', 'Customer ID', 'Mã KH']) || '').trim(),
       Name: String(getVal(r, ['Name', 'Malee', 'Full Name', 'Tên KH']) || 'Unknown'),
       Phone: String(getVal(r, ['Phone', 'SĐT']) || ''),
-      TotalSpend: Number(getVal(r, ['Total Spend', 'Doanh thu', 'TotalRevenue', 'Total Revenue']) || 0),
-      Orders: Number(getVal(r, ['Number of Orders', 'Số đơn hàng', 'TotalOrders', 'Total Orders']) || 0),
+      TotalSpend: Number(getVal(r, ['Total Spend', 'Doanh thu', 'TotalRevenue', 'Total Revenue']) || 0) || 0,
+      Orders: Number(getVal(r, ['Number of Orders', 'Số đơn hàng', 'TotalOrders', 'Total Orders']) || 0) || 0,
       Segment: String(getVal(r, ['Segment (VIP/Loyal/At Risk/Lost)', 'Segment']) || 'Lost'),
       Active: String(getVal(r, ['Active (12m) [auto]', 'Active']) || '').toLowerCase() === 'yes' || Number(getVal(r, ['Active (12m) [auto]', 'Active'])) === 1 || (getVal(r, ['ChurnFlag']) !== undefined && Number(getVal(r, ['ChurnFlag'])) === 0),
       Repeat: String(getVal(r, ['Repeat Customer [auto]', 'RepeatFlag', 'Repeat']) || '').toLowerCase() === 'yes' || Number(getVal(r, ['Repeat Customer [auto]', 'RepeatFlag', 'Repeat'])) === 1,
       Store: String(getVal(r, ['Store', 'Vị trí', 'LastChannel']) || 'Showroom'),
       Channel: String(getVal(r, ['Channel (Retail/Online/B2B)', 'Channel', 'LastChannel']) || 'Retail'),
-      FirstPurchaseDate: getVal(r, ['First Purchase Date', 'Ngày mua đầu tiên', 'FirstOrderDate']),
-      LastPurchaseDate: getVal(r, ['Last Purchase Date', 'Ngày mua gần nhất', 'LastOrderDate'])
+      FirstPurchaseDate: getVal(r, ['First Purchase Date', 'Ngày mua đầu tiên', 'FirstOrderDate']) || '',
+      LastPurchaseDate: getVal(r, ['Last Purchase Date', 'Ngày mua gần nhất', 'LastOrderDate']) || ''
     }));
 
     // 3. Profiles - Extended Info

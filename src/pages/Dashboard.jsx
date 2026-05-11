@@ -218,21 +218,25 @@ export default function Dashboard() {
     // Trend mapping
     const trendMap = {};
     database.forEach(r => {
-        const k = `${r.Year}-${String(r.Month).padStart(2, '0')}`;
-        trendMap[k] = (trendMap[k] || 0) + r.Revenue;
+        const y = Number(r.Year) || new Date().getFullYear();
+        const m = Number(r.Month) || (new Date().getMonth() + 1);
+        const k = `${y}-${String(m).padStart(2, '0')}`;
+        const rev = Number(r.Revenue) || 0;
+        trendMap[k] = (trendMap[k] || 0) + rev;
     });
     const trendData = Object.entries(trendMap).sort().slice(-24).map(([k, v]) => ({
         name: `${k.split('-')[1]}/${k.slice(2,4)}`,
-        Total: v
+        Total: Number(v) || 0
     }));
 
     // Channels
     const channels = {};
     filteredDB.forEach(r => {
-        const ch = r.Channel_norm || r.Channel || 'Other';
-        channels[ch] = (channels[ch] || 0) + r.Revenue;
+        const ch = String(r.Channel_norm || r.Channel || 'Other');
+        const rev = Number(r.Revenue) || 0;
+        channels[ch] = (channels[ch] || 0) + rev;
     });
-    const channelData = Object.entries(channels).map(([n, v]) => ({ name: n, revenue: v })).sort((a,b) => b.revenue - a.revenue);
+    const channelData = Object.entries(channels).map(([n, v]) => ({ name: n, revenue: Number(v) || 0 })).sort((a,b) => b.revenue - a.revenue);
 
     return {
       totalCustomers: total, activeCount, activeRate, repeatRate, existingRate,
