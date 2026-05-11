@@ -7,7 +7,7 @@ import './TopBar.css';
 
 export default function TopBar({ toggleSidebar }) {
   const { globalSearch, setGlobalSearch, language, setLanguage, t } = useCRMData();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -56,9 +56,9 @@ export default function TopBar({ toggleSidebar }) {
 
         <div className="user-profile">
           <div className="avatar">
-            <img src="https://ui-avatars.com/api/?name=Shirley+H&background=random" alt="User" />
+            <img src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`} alt="User" />
           </div>
-          <span className="user-name">Shirley.H</span>
+          <span className="user-name">{user?.name}</span>
         </div>
       </div>
     </div>

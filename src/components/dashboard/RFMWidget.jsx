@@ -1,49 +1,28 @@
 import React from 'react';
 import { Crown, Heart, AlertTriangle, History, ArrowUpRight, Zap, Target } from 'lucide-react';
 
-export default function RFMWidget() {
-  const segments = [
-    { 
-      name: 'VIP', 
-      icon: <Crown size={18} />, 
-      count: 21, 
-      totalRev: '2.63 tỷ', 
-      avgSpend: '29.5M', 
-      percent: 0.5, 
-      color: '#8854d0', 
-      badge: null 
-    },
-    { 
-      name: 'Loyal', 
-      icon: <Heart size={18} />, 
-      count: 997, 
-      totalRev: '4.2 tỷ', 
-      avgSpend: '4.44M', 
-      percent: 24.8, 
-      color: '#20bf6b', 
-      badge: null 
-    },
-    { 
-      name: 'At Risk', 
-      icon: <AlertTriangle size={18} />, 
-      count: 513, 
-      totalRev: '2.1 tỷ', 
-      avgSpend: '3.74M', 
-      percent: 12.8, 
-      color: '#f7b731', 
-      badge: 'Cần hành động' 
-    },
-    { 
-      name: 'Lost', 
-      icon: <History size={18} />, 
-      count: 1547, 
-      totalRev: '4.7 tỷ', 
-      avgSpend: '2.96M', 
-      percent: 38.5, 
-      color: '#eb3b5a', 
-      badge: 'Cần hành động' 
-    },
-  ];
+export default function RFMWidget({ data, activeRate = 0, totalCustomerIDs = 0, inactiveRevPotential = 2540000000 }) {
+  const activeRateNum = Number(activeRate) || 0;
+  const gapValue = (activeRateNum - 50).toFixed(1);
+  const neededKH = Math.round((50/100 - activeRateNum/100) * totalCustomerIDs);
+  const totalKH = data ? data.reduce((sum, s) => sum + s.count, 0) : 0;
+  
+  const atRiskCount = data?.find(s => s.name === 'At Risk')?.count || 0;
+  const lostCount = data?.find(s => s.name === 'Lost')?.count || 0;
+  const inactiveP = inactiveRevPotential >= 1000000000 
+    ? `${(inactiveRevPotential / 1000000000).toFixed(2)} tỷ` 
+    : `${(inactiveRevPotential / 1000000).toFixed(1)} triệu`;
+
+  const segments = (data || []).map(seg => ({
+    ...seg,
+    icon: seg.name === 'VIP' ? <Crown size={18} /> : 
+          seg.name === 'Loyal' ? <Heart size={18} /> : 
+          seg.name === 'At Risk' ? <AlertTriangle size={18} /> : <History size={18} />,
+    totalRevStr: seg.totalRev >= 1000000000 ? `${(seg.totalRev / 1000000000).toFixed(2)} tỷ` : `${(seg.totalRev / 1000000).toFixed(1)}M`,
+    avgSpendStr: seg.count > 0 ? `${(seg.totalRev / seg.count / 1000000).toFixed(1)}M` : '0',
+    percent: totalKH > 0 ? (seg.count / totalKH * 100).toFixed(1) : 0,
+    badge: (seg.name === 'At Risk' || seg.name === 'Lost') ? 'Cần hành động' : null
+  }));
 
   return (
     <div className="rfm-widget-container" style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '32px' }}>
@@ -87,11 +66,11 @@ export default function RFMWidget() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
                   <span style={{ color: 'var(--text-medium)' }}>Tổng Rev:</span>
-                  <span style={{ fontWeight: 700, color: 'var(--text-dark)' }}>{seg.totalRev}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--text-dark)' }}>{seg.totalRevStr}</span>
                </div>
                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
                   <span style={{ color: 'var(--text-medium)' }}>Avg Spend/KH:</span>
-                  <span style={{ fontWeight: 700, color: 'var(--text-dark)' }}>{seg.avgSpend}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--text-dark)' }}>{seg.avgSpendStr}</span>
                </div>
             </div>
 
@@ -118,8 +97,8 @@ export default function RFMWidget() {
            
            <div style={{ display: 'flex', gap: '32px', marginBottom: '24px' }}>
               <div>
-                 <div style={{ fontSize: '24px', fontWeight: 800 }}>513 <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-medium)' }}>KH</span></div>
-                 <div style={{ fontSize: '12px', color: 'var(--text-medium)' }}>Mục tiêu: 30% (153 KH)</div>
+                 <div style={{ fontSize: '24px', fontWeight: 800 }}>{atRiskCount.toLocaleString()} <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-medium)' }}>KH</span></div>
+                 <div style={{ fontSize: '12px', color: 'var(--text-medium)' }}>Mục tiêu: 30% ({Math.round(atRiskCount * 0.3).toLocaleString()} KH)</div>
               </div>
               <div style={{ borderLeft: '1px solid #f59e0b30', paddingLeft: '32px' }}>
                  <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b' }}>80M – 120M</div>
@@ -152,12 +131,12 @@ export default function RFMWidget() {
            <div style={{ color: '#ef4444', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: 6 }}>
               <History size={14} /> Tái kích hoạt khách hàng Lost
            </div>
-           <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 800 }}>2.54 tỷ tiềm năng Win-Back</h3>
+           <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 800 }}>{inactiveP} tiềm năng Win-Back</h3>
 
            <div style={{ display: 'flex', gap: '32px', marginBottom: '24px' }}>
               <div>
-                 <div style={{ fontSize: '24px', fontWeight: 800 }}>1,547 <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-medium)' }}>KH</span></div>
-                 <div style={{ fontSize: '12px', color: 'var(--text-medium)' }}>Mục tiêu: 15% (~232 KH)</div>
+                 <div style={{ fontSize: '24px', fontWeight: 800 }}>{lostCount.toLocaleString()} <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-medium)' }}>KH</span></div>
+                 <div style={{ fontSize: '12px', color: 'var(--text-medium)' }}>Mục tiêu: 15% (~{Math.round(lostCount * 0.15).toLocaleString()} KH)</div>
               </div>
               <div style={{ borderLeft: '1px solid #ef444430', paddingLeft: '32px' }}>
                  <div style={{ fontSize: '24px', fontWeight: 800, color: '#ef4444' }}>120M – 200M</div>
@@ -190,7 +169,7 @@ export default function RFMWidget() {
          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '12px' }}>
             <div>
                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-medium)', textTransform: 'uppercase', marginBottom: '4px' }}>Active Rate (12 tháng)</div>
-               <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-dark)' }}>33.5% <span style={{ fontSize: '16px', fontWeight: 500, color: '#f59e0b' }}>(Cần cải thiện)</span></div>
+               <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-dark)' }}>{activeRateNum.toFixed(1)}% {activeRateNum < 50 && <span style={{ fontSize: '16px', fontWeight: 500, color: '#f59e0b' }}>(Cần cải thiện)</span>}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
                <div style={{ fontSize: '11px', color: 'var(--text-medium)', fontWeight: 600 }}>TARGET Q1</div>
@@ -200,7 +179,7 @@ export default function RFMWidget() {
 
          <div style={{ height: '16px', width: '100%', background: '#f1f2f6', borderRadius: '8px', position: 'relative', overflow: 'visible', marginBottom: '12px' }}>
             {/* Current Progress */}
-            <div style={{ height: '100%', width: '33.5%', background: 'linear-gradient(90deg, #eb3b5a 0%, #f7b731 100%)', borderRadius: '8px' }} />
+            <div style={{ height: '100%', width: `${Math.min(activeRateNum, 100)}%`, background: 'linear-gradient(90deg, #eb3b5a 0%, #f7b731 100%)', borderRadius: '8px' }} />
             
             {/* Target Marker */}
             <div style={{ 
@@ -229,7 +208,7 @@ export default function RFMWidget() {
 
          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: '12px', color: 'var(--text-medium)', fontWeight: 500 }}>
-               Gap: <span style={{ color: '#eb3b5a', fontWeight: 700 }}>-16.5%</span> | Cần thêm <span style={{ color: 'var(--text-dark)', fontWeight: 700 }}>674 KH active</span> để đạt target
+               Gap: <span style={{ color: activeRateNum < 50 ? '#eb3b5a': '#20bf6b', fontWeight: 700 }}>{activeRateNum >= 50 ? '+' : ''}{gapValue}%</span> | Cần thêm <span style={{ color: 'var(--text-dark)', fontWeight: 700 }}>{neededKH > 0 ? neededKH : 0} KH active</span> để đạt target
             </div>
             <button style={{ 
               background: 'transparent', 

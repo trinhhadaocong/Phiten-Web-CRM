@@ -8,131 +8,104 @@ import KPIScorecard from '../../components/reports/KPIScorecard';
 import CampaignCards from '../../components/reports/CampaignCards';
 import GroupIDTable from '../../components/reports/GroupIDTable';
 
+import { useCRMData } from '../../context/CRMContext';
+
 const Reports = () => {
+  const { transactions, customers, customerList, loading } = useCRMData();
   const [activeTab, setActiveTab] = useState('q1');
-  const [currencyMode, setCurrencyMode] = useState('vnd'); // 'vnd' or 'billion'
+  const [currencyMode, setCurrencyMode] = useState('vnd'); 
 
-  // --- MOCK DATA BASED ON Q1.2026 REPORT ---
-  const kpiScorecardData = [
-    { name: "Active customer rate", actual: "33.5%", target: "≥50%", gap: "-16.5%", status: "❌", action: "Chiến dịch PHITEN NHỚ BẠN (T4)" },
-    { name: "Repeat purchase rate", actual: "27.8%", target: "≥35%", gap: "-7.2%", status: "❌", action: "Ưu đãi KH hiện hữu & Loyalty" },
-    { name: "Revenue KH hiện hữu", actual: "66.17%", target: "≥60%", gap: "+6.17%", status: "✅", action: "Duy trì chăm sóc Zalo OA" },
-    { name: "CRM revenue avg/tháng", actual: "250M", target: "≥200M", gap: "+50M", status: "✅", action: "Đẩy mạnh Upsell Q2" },
-    { name: "Inactive KH >6 tháng", actual: "2,063", target: "<50%", gap: "+16.7%", status: "❌", action: "Phân loại KH để Reactivation" },
-    { name: "Birthday CR avg", actual: "12.1%", target: "≥15%", gap: "-2.9%", status: "⚠️", action: "Cá nhân hóa quà tặng tháng sinh" },
-    { name: "Data completeness", actual: "22%", target: "≥95%", gap: "-73%", status: "❌", action: "Rà soát & nhập liệu tại showroom" },
-    { name: "CRM campaigns", actual: "1", target: "≥2", status: "❌", gap: "-1", action: "Tăng tần suất campaign CRM" },
-    { name: "Reactivation potential", actual: "2.54 tỷ", target: "—", gap: "Cơ hội Q2", status: "✅", action: "Priority #1 trong Q2.2026" },
-  ];
+  const stats = useMemo(() => {
+    if (!transactions.length || !customers.length) return null;
 
-  const revenueByMonth = [
-    { name: 'Tháng 1', new: 331600000, existing: 125800000 },
-    { name: 'Tháng 2', new: 240100000, existing: 298300000 },
-    { name: 'Tháng 3', new: 122600000, existing: 304700000 },
-  ];
+    const today = new Date();
+    const periodStart = new Date(2026, 0, 1); // Q1 2026 start
 
-  const revenueByChannel = [
-    { name: 'Nowzone', value: 3690000000 },
-    { name: 'Zalo OA', value: 2800000000 },
-    { name: 'Taka', value: 1850000000 },
-    { name: 'Shopee', value: 1590000000 },
-    { name: 'Website', value: 1040000000 },
-    { name: 'Facebook', value: 940000000 },
-    { name: 'Internal', value: 790000000 },
-    { name: 'Event', value: 390000000 },
-    { name: 'Lazada', value: 410000000 },
-    { name: 'Tiki', value: 250000000 },
-    { name: 'TikTok', value: 70000000 },
-    { name: 'Collab', value: 60000000 },
-  ].sort((a, b) => b.value - a.value);
-
-  const segmentData = [
-    { name: 'VIP', count: 21, percent: 0.7 },
-    { name: 'Loyal', count: 1020, percent: 32.7 },
-    { name: 'At Risk', count: 518, percent: 16.6 },
-    { name: 'Lost', count: 1552, percent: 49.8 },
-  ];
-
-  const campaigns = [
-    { title: 'PHITEN NHỚ BẠN', scale: '1,392 KH', expected: '120 - 200M' },
-    { title: 'VIP EXCLUSIVE', scale: '71 KH', expected: '80 - 150M' },
-    { title: 'BIRTHDAY CLUB', scale: '50 KH (T4)', expected: '30 - 60M' },
-  ];
-
-  const groupIds = [
-    {
-      id: 'KH000184',
-      name: 'Khách Lẻ Sàn Shopee',
-      spend: 840997963,
-      orders: 317,
-      channel: 'Shopee',
-      note: 'Sàn ẩn — KH000184 dùng từ 01/2024 đến nay',
-      status: 'Active'
-    },
-    {
-      id: 'KH0008625',
-      name: 'Khách Lẻ No Lấy Hóa Đơn',
-      spend: 642308339,
-      orders: 264,
-      channel: 'All Channel',
-      note: 'Takashimaya + Nowzon + Lazada + Tiki + Zalo + Website + Event',
-      status: 'Active'
-    },
-    {
-      id: 'KH000010',
-      name: 'Khách Lẻ Nước Ngoài',
-      spend: 469838160,
-      orders: 154,
-      channel: 'Takashimaya',
-      note: 'Khách tourist — không đăng ký',
-      status: 'Active'
-    },
-    {
-      id: 'KH000009',
-      name: 'Khách Lẻ Việt Nam',
-      spend: 79771940,
-      orders: 34,
-      channel: 'Takashimaya',
-      note: 'Mua lẻ tại quầy — không đăng ký',
-      status: 'Active'
-    },
-    {
-      id: 'KH000529',
-      name: 'Khách Lẻ Sàn TikTok',
-      spend: 32119400,
-      orders: 17,
-      channel: 'TikTok',
-      note: 'TikTok ẩn — KH000529 dùng từ 05/2024 đến nay',
-      status: 'Active'
-    },
-    {
-      id: 'KH0005304',
-      name: 'Takashimaya',
-      spend: 42092250,
-      orders: 10,
-      channel: 'Takashimaya',
-      note: 'Mua lẻ tại Event — chưa có store',
-      status: 'Stop'
-    },
-    {
-      id: 'KH0005108',
-      name: 'Foreigner',
-      spend: 83014500,
-      orders: 26,
-      channel: 'Online',
-      note: 'Event ghi nhận kênh Online (CN3)',
-      status: 'Stop'
-    },
-    {
-      id: 'KH0007417',
-      name: 'T*******h',
-      spend: 189885575,
-      orders: 78,
-      channel: 'Shopee',
-      note: 'Sàn ẩn — KH0007417 dùng từ 05/2024 đến nay',
-      status: 'Stop'
+    // 1. Revenue by Month
+    const monthlyRev = {};
+    for (let m = 1; m <= 3; m++) {
+      monthlyRev[`Tháng ${m}`] = { name: `Tháng ${m}`, new: 0, existing: 0 };
     }
-  ];
+
+    transactions.forEach(t => {
+      if (t.Year === 2026 && t.Month >= 1 && t.Month <= 3) {
+        const monthKey = `Tháng ${t.Month}`;
+        const cust = customers.find(c => c.CustomerID === t.CustomerID);
+        const fpdStr = cust?.FirstPurchaseDate;
+        
+        let isNew = false;
+        if (fpdStr) {
+          const parts = String(fpdStr).split('/');
+          if (parts.length === 3) {
+            const fpd = new Date(parts[2], parts[1] - 1, parts[0]);
+            const tDate = new Date(t.Year, t.Month - 1, 1);
+            if (fpd.getMonth() === tDate.getMonth() && fpd.getFullYear() === tDate.getFullYear()) {
+              isNew = true;
+            }
+          }
+        }
+
+        if (isNew) monthlyRev[monthKey].new += t.Revenue;
+        else monthlyRev[monthKey].existing += t.Revenue;
+      }
+    });
+
+    // 2. Revenue by Channel
+    const channelMap = {};
+    transactions.forEach(t => {
+      if (t.Year === 2026 && t.Month >= 1 && t.Month <= 3) {
+        const ch = t.Channel_norm || 'Other';
+        channelMap[ch] = (channelMap[ch] || 0) + t.Revenue;
+      }
+    });
+    const channelData = Object.entries(channelMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
+    // 3. Segments
+    const segMap = { 'VIP': 0, 'Loyal': 0, 'At Risk': 0, 'Lost': 0 };
+    customers.forEach(c => {
+      const s = c.Segment || 'Lost';
+      if (segMap[s] !== undefined) segMap[s]++;
+    });
+    const segmentData = Object.entries(segMap).map(([name, count]) => ({
+      name,
+      count,
+      percent: customers.length > 0 ? (count / customers.length * 100).toFixed(1) : 0
+    }));
+
+    // 4. KPI Scorecard
+    const totalCust = customers.length;
+    const activeCount = customers.filter(c => c.Active).length;
+    const repeatCount = customers.filter(c => c.Repeat).length;
+    const totalRev = transactions.filter(t => t.Year === 2026 && t.Month >= 1 && t.Month <= 3).reduce((s, t) => s + t.Revenue, 0);
+    const existingRev = transactions.filter(t => {
+      if (!(t.Year === 2026 && t.Month >= 1 && t.Month <= 3)) return false;
+      const cust = customers.find(c => c.CustomerID === t.CustomerID);
+      if (!cust?.FirstPurchaseDate) return false;
+      const parts = String(cust.FirstPurchaseDate).split('/');
+      const fpd = new Date(parts[2], parts[1] - 1, parts[0]);
+      return fpd < new Date(t.Year, t.Month - 1, 1);
+    }).reduce((s, t) => s + t.Revenue, 0);
+
+    const kpiData = [
+      { name: "Active customer rate", actual: `${(activeCount/totalCust*100).toFixed(1)}%`, target: "≥50%", status: activeCount/totalCust >= 0.5 ? "✅" : "❌" },
+      { name: "Repeat purchase rate", actual: `${(repeatCount/totalCust*100).toFixed(1)}%`, target: "≥35%", status: repeatCount/totalCust >= 0.35 ? "✅" : "❌" },
+      { name: "Revenue KH hiện hữu", actual: `${(existingRev/totalRev*100).toFixed(1)}%`, target: "≥60%", status: existingRev/totalRev >= 0.6 ? "✅" : "❌" },
+      { name: "CRM revenue avg/tháng", actual: `${Math.round(totalRev/3/1000000)}M`, target: "≥200M", status: totalRev/3 >= 200000000 ? "✅" : "❌" },
+    ];
+
+    return { 
+      revenueByMonth: Object.values(monthlyRev), 
+      channelData, 
+      segmentData, 
+      kpiData,
+      totalCustomers: totalCust,
+      totalRevenue: totalRev,
+      activeRate: (activeCount/totalCust*100).toFixed(1) + '%',
+      repeatRate: (repeatCount/totalCust*100).toFixed(1) + '%'
+    };
+  }, [transactions, customers]);
 
   const formatValue = (v) => {
     if (currencyMode === 'billion') {
@@ -141,6 +114,9 @@ const Reports = () => {
     }
     return v.toLocaleString();
   };
+
+  if (loading) return <div className="p-20 text-center text-white">Đang tổng hợp báo cáo...</div>;
+  if (!stats) return <div className="p-20 text-center text-white">Vui lòng upload dữ liệu để xem báo cáo.</div>;
 
   return (
     <div className="p-6 bg-[#0f172a] min-height-screen text-slate-300">
@@ -181,33 +157,33 @@ const Reports = () => {
 
       {/* KPI Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <KPICard title="Tổng KH thực tế" value="4,017" target="3.5k Q1" status="✅" suffix="KH" />
-        <KPICard title="Doanh thu Q1" value={formatValue(1531139500)} target="1.8 tỷ" status="⚠️" suffix="VND" />
-        <KPICard title="KH cần Reactivate" value="3,600" target="Max 2k" status="❌" suffix="Member" />
-        <KPICard title="Active Rate" value="33.5%" target="≥50%" status="❌" suffix="" />
+        <KPICard title="Tổng KH thực tế" value={stats.totalCustomers.toLocaleString()} target="3.5k Q1" status="✅" suffix="KH" />
+        <KPICard title="Doanh thu Q1" value={formatValue(stats.totalRevenue)} target="1.8 tỷ" status={stats.totalRevenue < 1800000000 ? "⚠️" : "✅"} suffix="VND" />
+        <KPICard title="KH cần Reactivate" value={stats.totalCustomers - parseInt(stats.activeRate)} target="Max 2k" status="❌" suffix="Member" />
+        <KPICard title="Active Rate" value={stats.activeRate} target="≥50%" status={parseFloat(stats.activeRate) >= 50 ? "✅" : "❌"} suffix="" />
       </div>
 
       {/* KPI Row 2 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <KPICard title="Repeat Purchase Rate" value="27.8%" target="≥35%" status="❌" />
-        <KPICard title="Revenue KH hiện hữu" value="66.17%" target="≥60%" status="✅" />
-        <KPICard title="CRM Rev avg/tháng" value="250M" target="≥200M" status="✅" />
+        <KPICard title="Repeat Purchase Rate" value={stats.repeatRate} target="≥35%" status={parseFloat(stats.repeatRate) >= 35 ? "✅" : "❌"} />
+        <KPICard title="Revenue KH hiện hữu" value={stats.kpiData[2].actual} target="≥60%" status={stats.kpiData[2].status} />
+        <KPICard title="CRM Rev avg/tháng" value={stats.kpiData[3].actual} target="≥200M" status={stats.kpiData[3].status} />
         <KPICard title="Data Completeness" value="22%" target="≥95%" status="❌" />
       </div>
 
       {/* Charts Section 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <RevenueChart data={activeTab === 'q1' ? revenueByMonth : revenueByMonth.slice(0, 1)} />
-        <ChannelChart data={revenueByChannel} />
+        <RevenueChart data={stats.revenueByMonth} />
+        <ChannelChart data={stats.channelData} />
       </div>
 
       {/* Charts Section 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
          <div className="lg:col-span-1">
-            <SegmentChart data={segmentData} />
+            <SegmentChart data={stats.segmentData} />
          </div>
          <div className="lg:col-span-2">
-            <KPIScorecard data={kpiScorecardData} />
+            <KPIScorecard data={stats.kpiData} />
          </div>
       </div>
 
@@ -217,11 +193,15 @@ const Reports = () => {
            <Filter className="text-indigo-400" size={18} />
            Ưu tiên Chiến dịch Tháng 4
          </h3>
-         <CampaignCards campaigns={campaigns} />
+         <CampaignCards campaigns={[
+           { title: 'PHITEN NHỚ BẠN', scale: `${(stats.totalCustomers * 0.35).toFixed(0)} KH`, expected: '120 - 200M' },
+           { title: 'VIP EXCLUSIVE', scale: `${stats.segmentData.find(s => s.name === 'VIP')?.count || 0} KH`, expected: '80 - 150M' },
+           { title: 'BIRTHDAY CLUB', scale: '50 KH (T4)', expected: '30 - 60M' },
+         ]} />
       </div>
 
       {/* Restricted Section */}
-      <GroupIDTable groups={groupIds} />
+      <GroupIDTable groups={[]} />
 
       {/* Alert Footer */}
       <div className="mt-12 bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-4">

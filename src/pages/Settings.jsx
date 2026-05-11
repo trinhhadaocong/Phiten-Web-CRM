@@ -1,7 +1,8 @@
 import React, { useState, useCallback, memo } from 'react';
+import { Link } from 'react-router-dom';
 import { useCRMData } from '../context/CRMContext';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Trash2, Save, Download, Users as UsersIcon, Settings as SettingsIcon, ShieldCheck, UserPlus, ToggleLeft, UserCog } from 'lucide-react';
+import { Plus, Trash2, Save, Download, Users as UsersIcon, Settings as SettingsIcon, ShieldCheck, UserPlus, ToggleLeft, UserCog, Upload } from 'lucide-react';
 
 // ── Sub-component for individual dropdown items ─────
 const DropdownItem = memo(({ item, idx, category, onRemove, onChange }) => {
@@ -128,6 +129,9 @@ export default function Settings() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
+          <Link to="/admin/import" className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <Upload size={16} /> Import Nâng Cao
+          </Link>
           <button className="btn-secondary" onClick={exportData}>
             <Download size={16} /> {t('exportFullData') || 'Export Backup'}
           </button>

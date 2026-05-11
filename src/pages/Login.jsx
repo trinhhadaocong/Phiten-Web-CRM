@@ -29,9 +29,10 @@ const Login = () => {
     }
   };
 
-  const quickLogin = (userEmail) => {
-    setEmail(userEmail);
-    login(userEmail, 'demo');
+  const quickLogin = (user) => {
+    setEmail(user.email);
+    const pass = user.role === 'admin' ? 'Admin@Phiten2026!' : 'demo';
+    login(user.email, pass);
   };
 
   return (
@@ -104,23 +105,34 @@ const Login = () => {
 
           {/* Quick Demo Login */}
           <div className="mt-10">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-5">
               <div className="h-px flex-1 bg-slate-800" />
-              <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Demo Quick Access</span>
+              <span className="text-[11px] text-slate-500 uppercase font-black tracking-widest">QUICK ACCESS POOL</span>
               <div className="h-px flex-1 bg-slate-800" />
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              {mockUsers.map(user => (
-                <button
-                  key={user.id}
-                  onClick={() => quickLogin(user.email)}
-                  className="bg-slate-900/40 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900 p-2.5 rounded-xl text-left transition-all group"
-                >
-                  <div className="text-[10px] font-bold text-slate-500 uppercase group-hover:text-indigo-400 transition-colors">{user.role}</div>
-                  <div className="text-xs font-medium text-slate-300 truncate">{user.name}</div>
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-4">
+              {mockUsers.map(user => {
+                const config = {
+                  admin: { bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-400', label: 'Admin', tip: 'Toàn quyền hệ thống' },
+                  manager: { bg: 'bg-purple-500/10', border: 'border-purple-500/20', text: 'text-purple-400', label: 'Manager', tip: 'Xem & Quản lý (Trừ Settings)' },
+                  cs: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400', label: 'CS', tip: 'Chỉ Dashboard + Khách hàng' },
+                  sales: { bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', text: 'text-yellow-400', label: 'Sales', tip: 'Dashboard + KH + Cơ hội' }
+                }[user.role] || { bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', text: 'text-indigo-400', label: user.role, tip: '' };
+
+                return (
+                  <button
+                    key={user.id}
+                    onClick={() => quickLogin(user)}
+                    title={config.tip}
+                    className={`relative group flex flex-col items-start p-4 rounded-2xl border ${config.border} ${config.bg} hover:scale-[1.02] transition-all`}
+                  >
+                    <div className={`text-[10px] font-black uppercase tracking-tighter ${config.text} mb-1`}>{config.label}</div>
+                    <div className="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">{user.name}</div>
+                    <div className="text-[10px] text-slate-500 font-medium mt-1">{user.department}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -43,7 +43,7 @@ export default function ReportAnalysis() {
     opportunities.forEach(o => { counts[o.id] = (counts[o.id] || 0) + 1; });
     let repeated = 0, oneTime = 0, zero = 0;
     customers.forEach(c => {
-      const oc = counts[c['M\u00e3 KH']] || 0;
+      const oc = counts[c['Mã KH']] || 0;
       if (oc > 1) repeated++;
       else if (oc === 1) oneTime++;
       else zero++;
@@ -60,10 +60,8 @@ export default function ReportAnalysis() {
     const file = e.target.files[0];
     if (!file) return;
     try {
-      const buffer = await file.arrayBuffer();
-      const wb = XLSX.read(buffer, { type: 'array' });
-      const custSheet = wb.Sheets['Customers'] || wb.Sheets[wb.SheetNames[0]];
-      importData(XLSX.utils.sheet_to_json(custSheet));
+      const result = await uploadExcel(file);
+      if (!result.success) alert(result.error);
       e.target.value = '';
     } catch (err) {
       alert('Error reading file.');
@@ -71,9 +69,10 @@ export default function ReportAnalysis() {
   };
 
   const newCustomersCount = customers.filter(c => {
-    if (!c['Ng\u00e0y Th\u00e0nh Vi\u00ean']) return false;
+    const d = c['Ngày Thành Viên'];
+    if (!d) return false;
     const currentMonth = new Date().getMonth() + 1;
-    return String(c['Ng\u00e0y Th\u00e0nh Vi\u00ean']).includes(`/${currentMonth < 10 ? '0' + currentMonth : currentMonth}/`);
+    return String(d).includes(`/${currentMonth < 10 ? '0' + currentMonth : currentMonth}/`);
   }).length;
 
   return (

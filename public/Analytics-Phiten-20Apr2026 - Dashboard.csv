@@ -1,0 +1,41 @@
+CRM CEO Dashboard (Auto),,,,,,,,
+SECTION 1: CORE KPI SCORECARD  — Công thức tự động từ Customer_List,,,,,,,,
+KPI,Current (auto),Target,Notes,Rate (%),,Danh sách Customer ID có chung nhiều KH gộp vào 1 IN 8 ID,,
+Total customers,"3,149","4,104",Có ~ 899 KH trong   là kết quả của nhiều khách hàng lẻ gộp chung vào 1 trong 8 ID,,,Lost,KH0005108,Foreigner
+Active customers (12m) (rate),"1,061","""≥ 50% Total""",Không đạt,33.7%,,Lost,KH0005304,Takashimaya
+Active customer (rate),"1,061",≥ 50%,Không đạt,33.68%,,Royal,KH000529,Khách lẻ sàn TikTok
+Repeat purchase (rate),883,≥ 35%,Không đạt,28.0%,,VIP,KH000009,Khách Lẻ Việt Nam
+Revenue from existing customers (rate),"2,110",≥ 60%,Đạt,67.00%,,VIP,KH000010,Khách Lẻ Nước Ngoài
+Total revenue ,"14,478,961,843",,19/04/2026,,,VIP,KH000184,Khách Lẻ Sàn Shopee
+Inactive customers (>6m),"2,088","""< 50% Total""",Không đạt,66.31%,,VIP,KH0008625,Khách Lẻ No Lấy Hóa Đơn
+KH VIP,27,,"Đã trừ 4 KH VIP (KH000009,KH000010,KH000184,KH0008625)",0.9%,,At Rist,KH0007417,T******h
+KH Loyal,"1,029",,Đã trừ 1 KH Loyal (KH000529),32.68%,,,,
+KH At Risk,521,,Đã trừ 1 KH At Risk (KH0007417),16.5%,,,,
+KH Lost (>2 năm),"1,564",,"Đã trừ 2 KH Lost (KH0005108 , KH0005304 )",49.67%,,,,
+AOV (Average Order Value),"2,400,358",,,,,,,
+Avg spend per customer,"4,597,955",,,,,,,
+Average Revenue per Customer (ARPU - All),"3,528,012",,,,,,,
+,,,,,,,,
+ SECTION 2: REVENUE BY CHANNEL — SUMIF từ Customer_List,,,,,,,,
+Channel,Revenue (VND),%,Total customers,Store,,,,
+Nowzone,"5,385,841,806",37.2%,987,Retail,,,,
+Takashimaya,"2,523,563,640",17.4%,399,Retail,,,,
+Zalo,"1,919,754,492",13.3%,471,Online,,,,
+Shopee,"1,625,003,853",11.2%,213,Online,,,,
+Facebook,"916,053,405",6.3%,217,Online,,,,
+Website,"750,536,749",5.2%,261,Online,,,,
+Internal,"426,103,699",2.9%,164,Online,,,,
+Lazada,"385,663,165",2.7%,185,Online,,,,
+Tiki,"236,426,336",1.6%,92,Online,,,,
+Event,"194,264,654",1.3%,130,Online,,,,
+TikTok,"38,411,844",0.3%,6,Online,,,,
+Collaborator,"70,298,200",0.5%,21,Online & B2B,,,,
+Outright,"7,040,000",0.0%,2,Online,,,,
+TOTAL,"14,478,961,843",100.0%,"3,042",,,,,
+,,,,,,,,
+SECTION 3: SEGMENT BREAKDOWN — COUNTIF/SUMIF từ Customer_List,,,,,,,,
+Segment,Total customers,%,Avg Spend,Total Spend,,,,
+VIP,27,0.9%,"27,629,874","2,991,363,672",,,,
+Loyal,"1,029",32.8%,"4,387,479","4,115,785,779",,,,
+At Risk,521,16.6%,"3,742,201","2,129,982,425",,,,
+Lost,"1,564",49.8%,"2,975,172","4,770,218,636",,,,

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useCallback, memo } from 'react';
 import { Link } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import { useCRMData } from '../context/CRMContext';
+import { useAuth } from '../context/AuthContext';
 import { Filter, DownloadCloud, UploadCloud, Plus, Edit2, Trash2, X, ExternalLink } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import './SalesCustomerList.css';
@@ -187,7 +188,17 @@ const CustomerModal = memo(({
 
 // ── MAIN PAGE COMPONENT ──────────────────────────────────────────────────────
 export default function SalesCustomerList() {
-  const { customers, addCustomer, updateCustomer, deleteCustomer, exportData, importData, globalSearch, t } = useCRMData();
+  const { customers, addCustomer, updateCustomer, deleteCustomer, exportData, uploadExcel, globalSearch, t } = useCRMData();
+  const { hasPermission } = useAuth();
+
+  if (!customers) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center', color: '#636e72' }}>
+        <h2 style={{ marginBottom: 12 }}>⚠️ {t('loading') || 'Đang tải dữ liệu khách hàng...'}</h2>
+        <p>Vui lòng chờ trong giây lát hoặc kiểm tra kết nối hệ thống.</p>
+      </div>
+    );
+  }
   
   // Track page renders
   console.log("%c[Page] SalesCustomerList Rendered", "color: #2ecc71; font-weight: bold;");
@@ -211,14 +222,15 @@ export default function SalesCustomerList() {
   const [formData, setFormData] = useState(emptyForm);
   const [errors, setErrors] = useState({});
 
-  const channelOptions = useMemo(() => Array.from(new Set(customers.map(c => c['Channel']).filter(Boolean))), [customers]);
-  const accountOptions = useMemo(() => Array.from(new Set(customers.map(c => c['Account']).filter(Boolean))), [customers]);
+  const channelOptions = useMemo(() => Array.from(new Set((customers || []).map(c => c['Channel']).filter(Boolean))), [customers]);
+  const accountOptions = useMemo(() => Array.from(new Set((customers || []).map(c => c['Account']).filter(Boolean))), [customers]);
 
-  const filteredCustomers = useMemo(() => customers.filter(c => {
+  const filteredCustomers = useMemo(() => (customers || []).filter(c => {
     const term = (globalSearch || '').toLowerCase();
     const matchesSearch =
       String(c['Tên KH'] || '').toLowerCase().includes(term) ||
-      String(c['SĐT'] || '').includes(term);
+      String(c['SĐT'] || '').includes(term) ||
+      String(c['Mã KH'] || '').toLowerCase().includes(term);
     const matchesChannel = filterChannel === 'All' || c['Channel'] === filterChannel;
     const matchesAccount = filterAccount === 'All' || c['Account'] === filterAccount;
     return matchesSearch && matchesChannel && matchesAccount;
@@ -270,11 +282,17 @@ export default function SalesCustomerList() {
     const file = e.target.files[0];
     if (!file) return;
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-      importData(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]));
+      const res = await uploadExcel(file);
+      if (res.success) {
+        alert('Cập nhật dữ liệu thành công!');
+      } else {
+        alert('Lỗi: ' + res.error);
+      }
       e.target.value = '';
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+      alert('Lỗi nhập file: ' + err.message);
+    }
   };
 
   return (
@@ -299,7 +317,7 @@ export default function SalesCustomerList() {
           <button className="icon-btn-filter"><Filter size={18} /></button>
         </div>
         <div className="actions">
-          <span>{filteredCustomers.length} {t('items')}</span>
+          <span>{filterChannel === 'All' && filterAccount === 'All' && !globalSearch ? (customers.length || 0) : filteredCustomers.length} {t('items')}</span>
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept=".xlsx,.xls,.csv" onChange={handleFileUpload} />
           <button className="btn-secondary" onClick={() => fileInputRef.current?.click()}><UploadCloud size={16} /> {t('importExcel')}</button>
           <button className="btn-secondary" onClick={exportData}><DownloadCloud size={16} /> {t('bulkExport')}</button>
@@ -323,25 +341,26 @@ export default function SalesCustomerList() {
               </tr>
             </thead>
             <tbody>
-              {filteredCustomers.slice(0, 15).map((c) => (
+              {filteredCustomers.map((c) => (
                 <tr key={c['Mã KH'] || Math.random()}>
                   <td><input type="checkbox" /> {c['Mã KH']}</td>
                   <td style={{ fontWeight: 600 }}>
-                    <Link to={`/sales/customers/${c['Mã KH']}`} style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
+                    <Link to={`/sales/customers/${encodeURIComponent(c['Mã KH'])}`} style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
                       {c['Tên KH']}
                     </Link>
                   </td>
                   <td>{c['SĐT']}</td>
                   <td>{c['Vị trí']}</td>
-                  <td>{c['Giới tính']}</td>
+                  <td>{t(c['Giới tính']?.toLowerCase()) || c['Giới tính']}</td>
                   <td><span className="status-badge" style={{ background: 'rgba(52,152,219,0.1)', color: '#3498db' }}>{c['Thành viên']}</span></td>
                   <td>{c['Channel']}</td>
                   <td style={{ textAlign: 'center' }}>
-                    <Link to={`/sales/customers/${c['Mã KH']}`} style={{ color: 'var(--text-light)', marginRight: 12 }}>
-                      <ExternalLink size={16} />
-                    </Link>
-                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary-color)', marginRight: 12 }} onClick={() => handleEdit(c)}><Edit2 size={16} /></button>
-                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-red)' }} onClick={() => handleDelete(c['Mã KH'])}><Trash2 size={16} /></button>
+                    {hasPermission('EDIT_CUSTOMER') && (
+                      <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary-color)', marginRight: 12 }} onClick={() => handleEdit(c)}><Edit2 size={16} /></button>
+                    )}
+                    {hasPermission('DELETE_CUSTOMER') && (
+                      <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-red)' }} onClick={() => handleDelete(c['Mã KH'])}><Trash2 size={16} /></button>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -59,15 +59,15 @@ export default function Analytics() {
 
   const top10Customers = useMemo(() => {
     return rfmData.map(c => {
-      const cr = customers.find(x => x['M\u00e3 KH'] === c.id);
-      return { id: c.id, name: cr ? cr['T\u00ean KH'] : 'Unknown', revenue: c.m };
+      const cr = customers.find(x => x['Mã KH'] === c.id);
+      return { id: c.id, name: cr ? cr['Tên KH'] : 'Unknown', revenue: c.m };
     }).sort((a, b) => b.revenue - a.revenue).slice(0, 10);
   }, [rfmData, customers]);
 
   const topChannels = useMemo(() => {
     const ch = {};
     opportunities.forEach(opp => {
-      const cr = customers.find(x => x['M\u00e3 KH'] === opp.id);
+      const cr = customers.find(x => x['Mã KH'] === opp.id);
       const chan = cr ? cr['Channel'] : 'Unknown';
       if (chan) ch[chan] = (ch[chan] || 0) + (opp.revenue || 0);
     });

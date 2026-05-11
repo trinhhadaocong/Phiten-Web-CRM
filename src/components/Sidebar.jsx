@@ -62,7 +62,7 @@ export default function Sidebar({ isOpen, closeSidebar }) {
     { 
       to: '/settings', 
       icon: <Settings size={20} />, 
-      label: t('setting'),
+      label: t('settings') || 'Settings',
       permission: 'VIEW_SETTINGS'
     },
   ];
