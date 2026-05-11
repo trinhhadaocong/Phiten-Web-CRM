@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import { useAuth } from '../context/AuthContext';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { Target, Zap, Users, Receipt, RefreshCcw, Landmark, Info, Download, Upload, AlertTriangle, Cake } from 'lucide-react';
+import { useCRMData } from '../context/CRMContext';
 import './Dashboard.css';
 
 import RFMWidget from '../components/dashboard/RFMWidget';
@@ -14,23 +15,7 @@ const toast = {
   error: (msg) => alert(`Error: ${msg}`)
 };
 
-const REQUIRED_DB_COLS = [
-  'Customer ID',
-  'Year',
-  'Month', 
-  'Revenue',
-  'Channel_norm',
-  'OrderKey',
-];
-
-const REQUIRED_CL_COLS = [
-  'Customer ID',
-  'First Purchase Date',
-  'Last Purchase Date',
-  'Total Spend',
-  'Number of Orders',
-  'Segment (VIP/Loyal/At Risk/Lost)',
-];
+const KPI_TARGETS = { activeRate: 50, repeatRate: 35, existingRate: 60 };
 
 const parseDate = (str) => {
   if (!str || str === '' || str === 'NON') return null;
@@ -57,14 +42,15 @@ const getFilterPeriodStart = (filter) => {
 };
 
 const buildBirthdayList = (db) => {
+  if (!db || !Array.isArray(db)) return [];
   const today = new Date();
   const thisMonth = today.getMonth() + 1;
   const seen = new Set();
   const result = [];
 
   db.forEach(row => {
-    const id = row.CustomerID_norm || row['Customer ID'];
-    if (seen.has(id)) return;
+    const id = row.CustomerID_norm || row.CustomerID || row['Customer ID'];
+    if (!id || seen.has(id)) return;
     const dob = row['DOB'];
     if (!dob || dob === '' || dob === 'NON') return;
     const parts = String(dob).split('/');
@@ -77,7 +63,7 @@ const buildBirthdayList = (db) => {
     seen.add(id);
     result.push({
       id, day, month,
-      name: row['Full Name'] || 'Khách hàng',
+      name: row['Full Name'] || row.FullName || 'Khách hàng',
       channel: row['Channel_norm'] || row['Channel'] || '',
       dob,
     });
@@ -86,9 +72,8 @@ const buildBirthdayList = (db) => {
   return result.sort((a, b) => a.day - b.day);
 };
 
-const KPI_TARGETS = { activeRate: 50, repeatRate: 35, existingRate: 60 };
-
 const getWarnings = (kpis) => {
+  if (!kpis) return [];
   const warns = [];
   if (kpis.activeRate < KPI_TARGETS.activeRate) warns.push('Active Rate');
   if (kpis.repeatRate < KPI_TARGETS.repeatRate) warns.push('Repeat Rate');
@@ -97,17 +82,16 @@ const getWarnings = (kpis) => {
 };
 
 export default function Dashboard() {
-  const { transactions: database, customerList, loading: isLoading } = useCRMData();
+  const { transactions: database, customerList, loading: isLoading, uploadExcel } = useCRMData();
   const [showEmptyState, setShowEmptyState] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
-  const { uploadExcel } = useCRMData();
   
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!isLoading) {
-      if (database.length === 0 && customerList.length === 0) {
+      if ((!database || database.length === 0) && (!customerList || customerList.length === 0)) {
         setShowEmptyState(true);
       } else {
         setShowEmptyState(false);
@@ -136,6 +120,7 @@ export default function Dashboard() {
   };
 
   const getFilteredDB = (filter = activeFilter) => {
+    if (!database || !Array.isArray(database)) return [];
     const today = new Date();
     switch (filter) {
       case 'thisMonth': {
@@ -150,7 +135,6 @@ export default function Dashboard() {
         const cutoff = new Date(today.getFullYear(), today.getMonth() - 6, 1);
         return database.filter(r => new Date(r.Year, r.Month - 1, 1) >= cutoff);
       }
-      case 'all':
       default:
         return database;
     }
@@ -159,98 +143,95 @@ export default function Dashboard() {
   const filteredDB = useMemo(() => getFilteredDB(activeFilter), [database, activeFilter]);
 
   const kpis = useMemo(() => {
-    if (!database.length || !customerList.length) return null;
+    if (!database || !customerList || database.length === 0 || customerList.length === 0) return null;
 
-    const total = customerList.length;
-    
-    // STATIC — từ Customer_List (Sử dụng key đã normalize từ CRMContext)
-    const activeCount = customerList.filter(c => c.Active === true).length;
-    const repeatCount = customerList.filter(c => c.Repeat === true).length;
-    const activeRate = total > 0 ? (activeCount / total * 100) : 0;
-    const repeatRate = total > 0 ? (repeatCount / total * 100) : 0;
-    
-    const countSegVIP = customerList.filter(c => c.Segment === 'VIP');
-    const countSegLoyal = customerList.filter(c => c.Segment === 'Loyal');
-    const countSegAtRisk = customerList.filter(c => c.Segment === 'At Risk');
-    const countSegLost = customerList.filter(c => c.Segment === 'Lost');
+    try {
+      const total = customerList.length;
+      const activeCount = customerList.filter(c => c.Active === true).length;
+      const repeatCount = customerList.filter(c => c.Repeat === true).length;
+      const activeRate = total > 0 ? (activeCount / total * 100) : 0;
+      const repeatRate = total > 0 ? (repeatCount / total * 100) : 0;
+      
+      const countSegVIP = customerList.filter(c => c.Segment === 'VIP');
+      const countSegLoyal = customerList.filter(c => c.Segment === 'Loyal');
+      const countSegAtRisk = customerList.filter(c => c.Segment === 'At Risk');
+      const countSegLost = customerList.filter(c => c.Segment === 'Lost');
 
-    const segmentVIP = countSegVIP.length;
-    const segmentLoyal = countSegLoyal.length;
-    const segmentAtRisk = countSegAtRisk.length;
-    const segmentLost = countSegLost.length;
+      const segmentVIP = countSegVIP.length;
+      const segmentLoyal = countSegLoyal.length;
+      const segmentAtRisk = countSegAtRisk.length;
+      const segmentLost = countSegLost.length;
 
-    const revVIP = countSegVIP.reduce((s, c) => s + (c.TotalSpend || 0), 0);
-    const revLoyal = countSegLoyal.reduce((s, c) => s + (c.TotalSpend || 0), 0);
-    const revAtRisk = countSegAtRisk.reduce((s, c) => s + (c.TotalSpend || 0), 0);
-    const revLost = countSegLost.reduce((s, c) => s + (c.TotalSpend || 0), 0);
-    
-    const potentialRev = revAtRisk + revLost;
+      const revVIP = countSegVIP.reduce((s, c) => s + (Number(c.TotalSpend) || 0), 0);
+      const revLoyal = countSegLoyal.reduce((s, c) => s + (Number(c.TotalSpend) || 0), 0);
+      const revAtRisk = countSegAtRisk.reduce((s, c) => s + (Number(c.TotalSpend) || 0), 0);
+      const revLost = countSegLost.reduce((s, c) => s + (Number(c.TotalSpend) || 0), 0);
+      
+      const potentialRev = revAtRisk + revLost;
 
-    // DYNAMIC — từ filteredDB
-    const totalRevenue  = filteredDB.reduce((s, r) => s + (r.Revenue || 0), 0);
-    const totalOrders   = new Set(filteredDB.map(r => r.OrderKey)).size;
-    const aov           = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+      const totalRevenue  = filteredDB.reduce((s, r) => s + (Number(r.Revenue) || 0), 0);
+      const totalOrders   = new Set(filteredDB.map(r => r.OrderKey)).size;
+      const aov           = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    const custMap = new Map(customerList.map(c => [String(c.CustomerID || '').trim(), c]));
-    const periodStart = getFilterPeriodStart(activeFilter);
-    
-    const newCustomers = filteredDB.filter(r => {
-      const cust = custMap.get(String(r.CustomerID_norm || r.CustomerID || r['Customer ID'] || '').trim());
-      if (!cust) return false;
-      const fpd = parseDate(cust.FirstPurchaseDate);
-      return fpd && fpd >= periodStart;
-    });
-    const newCustomerCount = new Set(newCustomers.map(r => String(r.CustomerID_norm || r.CustomerID || r['Customer ID'] || '').trim())).size;
-
-    const existingRevenue = filteredDB
-      .filter(r => {
-        const cust = custMap.get(String(r.CustomerID_norm || r.CustomerID || r['Customer ID'] || '').trim());
+      const custMap = new Map(customerList.map(c => [String(c.CustomerID || '').trim(), c]));
+      const periodStart = getFilterPeriodStart(activeFilter);
+      
+      const newCustomers = filteredDB.filter(r => {
+        const cust = custMap.get(String(r.CustomerID_norm || r.CustomerID || '').trim());
         if (!cust) return false;
         const fpd = parseDate(cust.FirstPurchaseDate);
-        return fpd && fpd < periodStart;
-      })
-      .reduce((s, r) => s + (r.Revenue || 0), 0);
-    const existingRate = totalRevenue > 0 ? existingRevenue / totalRevenue * 100 : 0;
+        return fpd && fpd >= periodStart;
+      });
+      const newCustomerCount = new Set(newCustomers.map(r => String(r.CustomerID_norm || r.CustomerID || '').trim())).size;
 
-    const targetActive = KPI_TARGETS.activeRate / 100;
-    const missingCustomers = Math.max(0, Math.round((targetActive - activeRate/100) * total));
+      const existingRevenue = filteredDB
+        .filter(r => {
+          const cust = custMap.get(String(r.CustomerID_norm || r.CustomerID || '').trim());
+          if (!cust) return false;
+          const fpd = parseDate(cust.FirstPurchaseDate);
+          return fpd && fpd < periodStart;
+        })
+        .reduce((s, r) => s + (Number(r.Revenue) || 0), 0);
+      const existingRate = totalRevenue > 0 ? (existingRevenue / totalRevenue * 100) : 0;
 
-    // Trend mapping
-    const trendMap = {};
-    database.forEach(r => {
-        const y = Number(r.Year) || new Date().getFullYear();
-        const m = Number(r.Month) || (new Date().getMonth() + 1);
-        const k = `${y}-${String(m).padStart(2, '0')}`;
-        const rev = Number(r.Revenue) || 0;
-        trendMap[k] = (trendMap[k] || 0) + rev;
-    });
-    const trendData = Object.entries(trendMap).sort().slice(-24).map(([k, v]) => ({
-        name: `${k.split('-')[1]}/${k.slice(2,4)}`,
-        Total: Number(v) || 0
-    }));
+      const missingCustomers = Math.max(0, Math.round((KPI_TARGETS.activeRate / 100 - activeRate/100) * total));
 
-    // Channels
-    const channels = {};
-    filteredDB.forEach(r => {
-        const ch = String(r.Channel_norm || r.Channel || 'Other');
-        const rev = Number(r.Revenue) || 0;
-        channels[ch] = (channels[ch] || 0) + rev;
-    });
-    const channelData = Object.entries(channels).map(([n, v]) => ({ name: n, revenue: Number(v) || 0 })).sort((a,b) => b.revenue - a.revenue);
+      const trendMap = {};
+      database.forEach(r => {
+          const y = Number(r.Year) || 2026;
+          const m = Number(r.Month) || 1;
+          const k = `${y}-${String(m).padStart(2, '0')}`;
+          trendMap[k] = (trendMap[k] || 0) + (Number(r.Revenue) || 0);
+      });
+      const trendData = Object.entries(trendMap).sort().slice(-24).map(([k, v]) => ({
+          name: `${k.split('-')[1]}/${k.slice(2,4)}`,
+          Total: Number(v) || 0
+      }));
 
-    return {
-      totalCustomers: total, activeCount, activeRate, repeatRate, existingRate,
-      segmentVIP, segmentLoyal, segmentAtRisk, segmentLost,
-      totalRevenue, totalOrders, aov, newCustomerCount, missingCustomers, potentialRev,
-      rfm: [
-        { name: 'VIP', count: segmentVIP, totalRev: revVIP, color: '#8854d0' },
-        { name: 'Loyal', count: segmentLoyal, totalRev: revLoyal, color: '#20bf6b' },
-        { name: 'At Risk', count: segmentAtRisk, totalRev: revAtRisk, color: '#f7b731' },
-        { name: 'Lost', count: segmentLost, totalRev: revLost, color: '#eb3b5a' }
-      ],
-      trendData, channelData,
-      birthdays: buildBirthdayList(database)
-    };
+      const channels = {};
+      filteredDB.forEach(r => {
+          const ch = String(r.Channel_norm || r.Channel || 'Other');
+          channels[ch] = (channels[ch] || 0) + (Number(r.Revenue) || 0);
+      });
+      const channelData = Object.entries(channels).map(([n, v]) => ({ name: n, revenue: Number(v) || 0 })).sort((a,b) => b.revenue - a.revenue);
+
+      return {
+        totalCustomers: total, activeCount, activeRate, repeatRate, existingRate,
+        segmentVIP, segmentLoyal, segmentAtRisk, segmentLost,
+        totalRevenue, totalOrders, aov, newCustomerCount, missingCustomers, potentialRev,
+        rfm: [
+          { name: 'VIP', count: segmentVIP, totalRev: revVIP, color: '#8854d0' },
+          { name: 'Loyal', count: segmentLoyal, totalRev: revLoyal, color: '#20bf6b' },
+          { name: 'At Risk', count: segmentAtRisk, totalRev: revAtRisk, color: '#f7b731' },
+          { name: 'Lost', count: segmentLost, totalRev: revLost, color: '#eb3b5a' }
+        ],
+        trendData, channelData,
+        birthdays: buildBirthdayList(database)
+      };
+    } catch (e) {
+      console.error("KPI calculation error:", e);
+      return null;
+    }
   }, [database, customerList, filteredDB, activeFilter]);
 
   if (isLoading) return <div className="dashboard-loading">Đang tải cấu hình...</div>;
@@ -278,7 +259,17 @@ export default function Dashboard() {
     );
   }
 
-  const warnings = kpis ? getWarnings(kpis) : [];
+  if (!kpis) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <AlertTriangle size={48} color="#f59e0b" style={{ margin: '0 auto 20px' }} />
+        <h3>Lỗi tính toán dữ liệu</h3>
+        <p>Có lỗi xảy ra khi xử lý các chỉ số. Vui lòng kiểm tra lại định dạng file Excel.</p>
+      </div>
+    );
+  }
+
+  const warnings = getWarnings(kpis);
 
   return (
     <div className="dashboard animate-fade-in">
@@ -327,7 +318,7 @@ export default function Dashboard() {
           <h3 style={{ marginBottom: 20 }}>Biểu đồ Doanh thu</h3>
           <div style={{ height: 260 }}>
             <ResponsiveContainer>
-              <AreaChart data={kpis?.trendData}>
+              <AreaChart data={kpis?.trendData || []}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f2f6" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} tickFormatter={v => (v/1000000).toFixed(0) + 'M'} />
@@ -342,7 +333,7 @@ export default function Dashboard() {
           <h3 style={{ marginBottom: 20 }}>Cơ cấu Kênh bán hàng</h3>
           <div style={{ height: 260 }}>
             <ResponsiveContainer>
-              <BarChart data={kpis?.channelData}>
+              <BarChart data={kpis?.channelData || []}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f2f6" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} tickFormatter={v => (v/1000000000).toFixed(1) + 'B'} />
