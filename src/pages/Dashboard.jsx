@@ -308,11 +308,11 @@ export default function Dashboard() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <StatCard title="DOANH THU" value={`${kpis?.totalRevenue?.toLocaleString()} VND`} subtitle={`KH Cũ: ${kpis?.existingRate.toFixed(1)}%`} color="#8854d0" icon={<Landmark size={24} />} />
-        <StatCard title="TỔNG KHÁCH HÀNG" value={kpis?.totalCustomers?.toLocaleString()} subtitle={`${kpis?.newCustomerCount} KH MỚI TRONG KỲ`} color="#45aaf2" icon={<Users size={24} />} />
-        <StatCard title="ACTIVE RATE" value={`${kpis?.activeRate.toFixed(1)}%`} subtitle={`Cần thêm ${kpis?.missingCustomers} KH Active`} color={kpis?.activeRate < KPI_TARGETS.activeRate ? '#eb3b5a' : '#20bf6b'} icon={<Target size={24} />} />
-        <StatCard title="REPEAT RATE" value={`${kpis?.repeatRate.toFixed(1)}%`} subtitle="Target: 35%" color={kpis?.repeatRate < KPI_TARGETS.repeatRate ? '#f7b731' : '#20bf6b'} icon={<RefreshCcw size={24} />} />
-        <StatCard title="AOV" value={`${Math.round(kpis?.aov || 0).toLocaleString()} VND`} subtitle={`Số đơn hàng: ${kpis?.totalOrders}`} color="#20bf6b" icon={<Receipt size={24} />} />
+        <StatCard title="DOANH THU" value={`${kpis?.totalRevenue?.toLocaleString() || 0} VND`} subtitle={`KH Cũ: ${kpis?.existingRate?.toFixed(1) || 0}%`} color="#8854d0" icon={<Landmark size={24} />} />
+        <StatCard title="TỔNG KHÁCH HÀNG" value={kpis?.totalCustomers?.toLocaleString() || 0} subtitle={`${kpis?.newCustomerCount || 0} KH MỚI TRONG KỲ`} color="#45aaf2" icon={<Users size={24} />} />
+        <StatCard title="ACTIVE RATE" value={`${kpis?.activeRate?.toFixed(1) || 0}%`} subtitle={`Cần thêm ${kpis?.missingCustomers || 0} KH Active`} color={kpis?.activeRate < KPI_TARGETS.activeRate ? '#eb3b5a' : '#20bf6b'} icon={<Target size={24} />} />
+        <StatCard title="REPEAT RATE" value={`${kpis?.repeatRate?.toFixed(1) || 0}%`} subtitle="Target: 35%" color={kpis?.repeatRate < KPI_TARGETS.repeatRate ? '#f7b731' : '#20bf6b'} icon={<RefreshCcw size={24} />} />
+        <StatCard title="AOV" value={`${Math.round(kpis?.aov || 0).toLocaleString()} VND`} subtitle={`Số đơn hàng: ${kpis?.totalOrders || 0}`} color="#20bf6b" icon={<Receipt size={24} />} />
         <StatCard title="TIỀM NĂNG" value={`${(kpis?.potentialRev ? (kpis.potentialRev / 1000000000).toFixed(2) : 0)} tỷ`} subtitle="Dựa trên KH At-Risk & Lost" color="#a55eea" icon={<Zap size={24} />} />
       </div>
 
@@ -356,7 +356,7 @@ export default function Dashboard() {
         <h3 style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Cake size={20} color="#eb3b5a" /> Khách hàng sinh nhật tháng {new Date().getMonth() + 1}
         </h3>
-        {kpis?.birthdays && kpis.birthdays.length > 0 ? (
+        {kpis?.birthdays && kpis.birthdays?.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 15 }}>
             {kpis.birthdays.map((b) => (
               <div key={b.id} style={{ padding: 15, border: '1px solid #f1f2f6', borderRadius: 8 }}>

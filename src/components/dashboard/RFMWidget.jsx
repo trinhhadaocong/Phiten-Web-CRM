@@ -9,18 +9,18 @@ export default function RFMWidget({ data, activeRate = 0, totalCustomerIDs = 0, 
   
   const atRiskCount = data?.find(s => s.name === 'At Risk')?.count || 0;
   const lostCount = data?.find(s => s.name === 'Lost')?.count || 0;
-  const inactiveP = inactiveRevPotential >= 1000000000 
-    ? `${(inactiveRevPotential / 1000000000).toFixed(2)} tỷ` 
-    : `${(inactiveRevPotential / 1000000).toFixed(1)} triệu`;
+  const inactiveP = (inactiveRevPotential || 0) >= 1000000000 
+    ? `${((inactiveRevPotential || 0) / 1000000000).toFixed(2)} tỷ` 
+    : `${((inactiveRevPotential || 0) / 1000000).toFixed(1)} triệu`;
 
   const segments = (data || []).map(seg => ({
     ...seg,
     icon: seg.name === 'VIP' ? <Crown size={18} /> : 
           seg.name === 'Loyal' ? <Heart size={18} /> : 
           seg.name === 'At Risk' ? <AlertTriangle size={18} /> : <History size={18} />,
-    totalRevStr: seg.totalRev >= 1000000000 ? `${(seg.totalRev / 1000000000).toFixed(2)} tỷ` : `${(seg.totalRev / 1000000).toFixed(1)}M`,
-    avgSpendStr: seg.count > 0 ? `${(seg.totalRev / seg.count / 1000000).toFixed(1)}M` : '0',
-    percent: totalKH > 0 ? (seg.count / totalKH * 100).toFixed(1) : 0,
+    totalRevStr: (seg.totalRev || 0) >= 1000000000 ? `${((seg.totalRev || 0) / 1000000000).toFixed(2)} tỷ` : `${((seg.totalRev || 0) / 1000000).toFixed(1)}M`,
+    avgSpendStr: (seg.count || 0) > 0 ? `${((seg.totalRev || 0) / (seg.count || 1) / 1000000).toFixed(1)}M` : '0',
+    percent: totalKH > 0 ? ((seg.count || 0) / totalKH * 100).toFixed(1) : 0,
     badge: (seg.name === 'At Risk' || seg.name === 'Lost') ? 'Cần hành động' : null
   }));
 
